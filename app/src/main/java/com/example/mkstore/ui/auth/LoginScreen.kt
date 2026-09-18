@@ -29,11 +29,48 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isSignUpMode by remember { mutableStateOf(false) }
+    var showGoogleDialog by remember { mutableStateOf(false) }
+    var googleAccountEmail by remember { mutableStateOf("karankumawat640@gmail.com") }
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             onLoginSuccess()
         }
+    }
+
+    if (showGoogleDialog) {
+        AlertDialog(
+            onDismissRequest = { showGoogleDialog = false },
+            title = { Text("Select Google Account") },
+            text = {
+                Column {
+                    Text("Project: project-13664921779")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = googleAccountEmail,
+                        onValueChange = { googleAccountEmail = it },
+                        label = { Text("Google Account Email") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    showGoogleDialog = false
+                    viewModel.loginWithGoogleAccount(
+                        googleEmail = googleAccountEmail,
+                        googleName = googleAccountEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+                    )
+                }) {
+                    Text("Continue with Google")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showGoogleDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -121,6 +158,16 @@ fun LoginScreen(
                 } else {
                     Text(if (isSignUpMode) "Sign Up" else "Login")
                 }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = { showGoogleDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = authState !is AuthState.Loading
+            ) {
+                Text("Sign in with Google")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

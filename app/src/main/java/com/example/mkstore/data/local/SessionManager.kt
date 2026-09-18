@@ -28,8 +28,42 @@ class SessionManager @Inject constructor(
         prefs.edit().putBoolean(KEY_IS_LOGGED_IN, loggedIn).apply()
     }
 
+    fun getUserEmail(): String {
+        return prefs.getString(KEY_USER_EMAIL, "") ?: ""
+    }
+
+    fun getUserName(): String {
+        return prefs.getString(KEY_USER_NAME, "") ?: ""
+    }
+
+    fun getUserPhotoUrl(): String {
+        return prefs.getString(KEY_USER_PHOTO_URL, "") ?: ""
+    }
+
+    fun saveUserData(name: String, email: String, photoUrl: String = "") {
+        prefs.edit()
+            .putString(KEY_USER_NAME, name)
+            .putString(KEY_USER_EMAIL, email)
+            .putString(KEY_USER_PHOTO_URL, photoUrl)
+            .putBoolean(KEY_IS_LOGGED_IN, true)
+            .apply()
+    }
+
+    fun clearSession() {
+        prefs.edit()
+            .putBoolean(KEY_IS_LOGGED_IN, false)
+            .remove(KEY_USER_NAME)
+            .remove(KEY_USER_EMAIL)
+            .remove(KEY_USER_PHOTO_URL)
+            .apply()
+    }
+
     companion object {
         private const val KEY_FIRST_RUN = "key_first_run"
         private const val KEY_IS_LOGGED_IN = "key_is_logged_in"
+        private const val KEY_USER_EMAIL = "key_user_email"
+        private const val KEY_USER_NAME = "key_user_name"
+        private const val KEY_USER_PHOTO_URL = "key_user_photo_url"
+        const val GOOGLE_WEB_CLIENT_ID = "13664921779-nvlfrtjlp493uao404d3lunsjmkapeol.apps.googleusercontent.com"
     }
 }

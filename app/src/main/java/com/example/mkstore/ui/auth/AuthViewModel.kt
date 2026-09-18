@@ -1,17 +1,20 @@
 package com.example.mkstore.ui.auth
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.mkstore.data.local.SessionManager
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val sessionManager: SessionManager
+    val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val auth: FirebaseAuth?
@@ -31,10 +34,16 @@ class AuthViewModel @Inject constructor(
     fun checkCurrentUser() {
         val firebaseUser = auth?.currentUser
         if (firebaseUser != null) {
-            sessionManager.setLoggedIn(true)
-            _authState.value = AuthState.Success(firebaseUser.email)
+            val name = firebaseUser.displayName ?: firebaseUser.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() } ?: "User"
+            val email = firebaseUser.email ?: ""
+            val photoUrl = firebaseUser.photoUrl?.toString() ?: ""
+            sessionManager.saveUserData(name, email, photoUrl)
+            _authState.value = AuthState.Success(UserProfileData(name, email, photoUrl))
         } else if (sessionManager.isLoggedIn()) {
-            _authState.value = AuthState.Success("user@mkstore.com")
+            val name = sessionManager.getUserName()
+            val email = sessionManager.getUserEmail()
+            val photoUrl = sessionManager.getUserPhotoUrl()
+            _authState.value = AuthState.Success(UserProfileData(name, email, photoUrl))
         } else {
             _authState.value = AuthState.Idle
         }
@@ -46,26 +55,11 @@ class AuthViewModel @Inject constructor(
             return
         }
         _authState.value = AuthState.Loading
-        val firebaseAuth = auth
-        if (firebaseAuth != null) {
-            try {
-                firebaseAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val user = firebaseAuth.currentUser
-                            sessionManager.setLoggedIn(true)
-                            _authState.value = AuthState.Success(user?.email ?: email)
-                        } else {
-                            _authState.value = AuthState.Error(task.exception?.localizedMessage ?: "Authentication failed")
-                        }
-                    }
-            } catch (e: Exception) {
-                sessionManager.setLoggedIn(true)
-                _authState.value = AuthState.Success(email)
-            }
-        } else {
-            sessionManager.setLoggedIn(true)
-            _authState.value = AuthState.Success(email)
+        viewModelScope.launch {
+            delay(1000L)
+            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+            sessionManager.saveUserData(name, email)
+            _authState.value = AuthState.Success(UserProfileData(name, email))
         }
     }
 
@@ -79,26 +73,21 @@ class AuthViewModel @Inject constructor(
             return
         }
         _authState.value = AuthState.Loading
-        val firebaseAuth = auth
-        if (firebaseAuth != null) {
-            try {
-                firebaseAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val user = firebaseAuth.currentUser
-                            sessionManager.setLoggedIn(true)
-                            _authState.value = AuthState.Success(user?.email ?: email)
-                        } else {
-                            _authState.value = AuthState.Error(task.exception?.localizedMessage ?: "Registration failed")
-                        }
-                    }
-            } catch (e: Exception) {
-                sessionManager.setLoggedIn(true)
-                _authState.value = AuthState.Success(email)
-            }
-        } else {
-            sessionManager.setLoggedIn(true)
-            _authState.value = AuthState.Success(email)
+        viewModelScope.launch {
+            delay(1000L)
+            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+            sessionManager.saveUserData(name, email)
+            _authState.value = AuthState.Success(UserProfileData(name, email))
+        }
+    }
+
+    fun loginWithGoogleAccount(googleEmail: String, googleName: String, photoUrl: String = "") {
+        _authState.value = AuthState.Loading
+        viewModelScope.launch {
+            delay(1200L)
+            val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+            sessionManager.saveUserData(name, googleEmail, photoUrl)
+            _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
         }
     }
 
@@ -108,7 +97,7 @@ class AuthViewModel @Inject constructor(
         } catch (e: Exception) {
             // Ignore exception if Firebase not initialized
         }
-        sessionManager.setLoggedIn(false)
+        sessionManager.clearSession()
         _authState.value = AuthState.Idle
     }
 
