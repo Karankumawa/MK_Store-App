@@ -61,7 +61,9 @@ fun NavGraph(navController: NavHostController) {
             LoginScreen(
                 viewModel = viewModel,
                 onLoginSuccess = {
-                    navController.popBackStack()
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -124,7 +126,7 @@ fun NavGraph(navController: NavHostController) {
                 onBackClick = { navController.popBackStack() },
                 onLoginClick = { navController.navigate(Screen.Login.route) },
                 onLogoutClick = {
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 }
