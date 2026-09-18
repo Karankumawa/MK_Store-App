@@ -16,10 +16,13 @@ import com.example.mkstore.ui.checkout.CheckoutViewModel
 import com.example.mkstore.ui.home.HomeScreen
 import com.example.mkstore.ui.home.HomeViewModel
 import com.example.mkstore.ui.onboarding.OnboardingScreen
+import com.example.mkstore.ui.onboarding.OnboardingViewModel
 import com.example.mkstore.ui.product_detail.ProductDetailScreen
 import com.example.mkstore.ui.product_detail.ProductDetailViewModel
 import com.example.mkstore.ui.profile.ProfileScreen
+import com.example.mkstore.ui.profile.ProfileViewModel
 import com.example.mkstore.ui.splash.SplashScreen
+import com.example.mkstore.ui.splash.SplashViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -28,18 +31,27 @@ fun NavGraph(navController: NavHostController) {
         startDestination = Screen.Splash.route
     ) {
         composable(Screen.Splash.route) {
+            val viewModel: SplashViewModel = hiltViewModel()
             SplashScreen(
+                viewModel = viewModel,
                 onNavigateToOnboarding = {
                     navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
             )
         }
         composable(Screen.Onboarding.route) {
+            val viewModel: OnboardingViewModel = hiltViewModel()
             OnboardingScreen(
+                viewModel = viewModel,
                 onFinishOnboarding = {
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 }
@@ -50,9 +62,7 @@ fun NavGraph(navController: NavHostController) {
             LoginScreen(
                 viewModel = viewModel,
                 onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -87,7 +97,13 @@ fun NavGraph(navController: NavHostController) {
             CartScreen(
                 viewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
-                onCheckoutClick = { navController.navigate(Screen.Checkout.route) }
+                onCheckoutClick = { isLoggedIn: Boolean ->
+                    if (isLoggedIn) {
+                        navController.navigate(Screen.Checkout.route)
+                    } else {
+                        navController.navigate(Screen.Login.route)
+                    }
+                }
             )
         }
         composable(Screen.Checkout.route) {
@@ -103,7 +119,9 @@ fun NavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.Profile.route) {
+            val viewModel: ProfileViewModel = hiltViewModel()
             ProfileScreen(
+                viewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
                 onLogoutClick = {
                     navController.navigate(Screen.Login.route) {

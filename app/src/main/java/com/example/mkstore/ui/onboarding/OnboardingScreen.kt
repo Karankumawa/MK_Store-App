@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
+    viewModel: OnboardingViewModel,
     onFinishOnboarding: () -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
@@ -101,6 +102,7 @@ fun OnboardingScreen(
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
                     }
                 } else {
+                    viewModel.completeOnboarding()
                     onFinishOnboarding()
                 }
             },

@@ -3,6 +3,7 @@ package com.example.mkstore.ui.cart
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mkstore.data.local.CartEntity
+import com.example.mkstore.data.local.SessionManager
 import com.example.mkstore.data.repository.StoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +20,8 @@ data class CartUiState(
 
 @HiltViewModel
 class CartViewModel @Inject constructor(
-    private val repository: StoreRepository
+    private val repository: StoreRepository,
+    val sessionManager: SessionManager
 ) : ViewModel() {
 
     val uiState: StateFlow<CartUiState> = repository.cartItems

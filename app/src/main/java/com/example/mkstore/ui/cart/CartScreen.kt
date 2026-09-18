@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -24,7 +24,7 @@ import com.example.mkstore.data.local.CartEntity
 fun CartScreen(
     viewModel: CartViewModel,
     onBackClick: () -> Unit,
-    onCheckoutClick: () -> Unit
+    onCheckoutClick: (Boolean) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -34,7 +34,7 @@ fun CartScreen(
                 title = { Text("My Cart") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -64,7 +64,7 @@ fun CartScreen(
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(
-                            onClick = onCheckoutClick,
+                            onClick = { onCheckoutClick(viewModel.sessionManager.isLoggedIn()) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Proceed to Checkout")
