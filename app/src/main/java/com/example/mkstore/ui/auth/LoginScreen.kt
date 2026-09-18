@@ -2,6 +2,9 @@ package com.example.mkstore.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -12,6 +15,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mkstore.R
@@ -49,17 +53,18 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Welcome Back!",
-                fontSize = 28.sp,
+                text = "Secure Authentication",
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
                 value = state.email,
                 onValueChange = { viewModel.onEmailChanged(it) },
                 label = { Text("Email Address") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -67,14 +72,21 @@ fun LoginScreen(
             OutlinedTextField(
                 value = state.password,
                 onValueChange = { viewModel.onPasswordChanged(it) },
-                label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
+                label = { Text("Password (Min 6 chars)") },
+                singleLine = true,
+                visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (state.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
+                        Icon(imageVector = image, contentDescription = "Toggle password visibility")
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             if (state.error != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = state.error!!, color = MaterialTheme.colorScheme.error)
+                Text(text = state.error!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -87,7 +99,7 @@ fun LoginScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Login")
+                    Text("Login with Email")
                 }
             }
 
@@ -98,7 +110,11 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !state.isLoading
             ) {
-                Text("Sign in with Google")
+                if (state.isLoading) {
+                    Text("Authenticating with Google...")
+                } else {
+                    Text("Sign in with Google")
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

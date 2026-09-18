@@ -3,9 +3,12 @@ package com.example.mkstore.ui.profile
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -18,6 +21,8 @@ fun ProfileScreen(
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
+    val state by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -25,6 +30,11 @@ fun ProfileScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.toggleEditing() }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
                     }
                 }
             )
@@ -57,18 +67,60 @@ fun ProfileScreen(
                         )
                     }
                 }
-                Text(
-                    text = "MK Store Member",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "EST. 2025",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                if (state.successMessage != null) {
+                    Text(
+                        text = state.successMessage!!,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                if (state.isEditing) {
+                    OutlinedTextField(
+                        value = state.name,
+                        onValueChange = { viewModel.updateName(it) },
+                        label = { Text("Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = state.email,
+                        onValueChange = { viewModel.updateEmail(it) },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = state.phone,
+                        onValueChange = { viewModel.updatePhone(it) },
+                        label = { Text("Phone") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Button(
+                        onClick = { viewModel.toggleEditing() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Save Changes")
+                    }
+                } else {
+                    Text(
+                        text = state.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = state.email,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = state.phone,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Card(
                     modifier = Modifier.fillMaxWidth()
