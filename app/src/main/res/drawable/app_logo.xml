@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="240"
+    android:viewportHeight="240">
+
+  <!-- Shopping Cart Body (Red) -->
+  <path
+      android:fillColor="#E53935"
+      android:pathData="M30,50 L60,50 L80,130 C82,138 89,143 97,143 L190,143 C198,143 205,138 208,130 L230,75 L70,75"/>
+
+  <!-- Basket Grid Lines -->
+  <path
+      android:strokeColor="#FFFFFF"
+      android:strokeWidth="4"
+      android:pathData="M95,88 L185,88 M95,110 L175,110 M120,75 L120,135 M155,75 L155,135"/>
+
+  <!-- Wheels -->
+  <path
+      android:fillColor="#B71C1C"
+      android:pathData="M95,160 A14,14 0,1,1 95,188 A14,14 0,1,1 95,160 M175,160 A14,14 0,1,1 175,188 A14,14 0,1,1 175,160"/>
+</vector>
