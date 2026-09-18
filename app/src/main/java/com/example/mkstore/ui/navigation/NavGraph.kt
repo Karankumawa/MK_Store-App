@@ -20,6 +20,9 @@ import com.example.mkstore.ui.onboarding.OnboardingViewModel
 import com.example.mkstore.ui.product_detail.ProductDetailScreen
 import com.example.mkstore.ui.product_detail.ProductDetailViewModel
 import com.example.mkstore.ui.profile.ProfileScreen
+import com.example.mkstore.ui.profile.addresses.ShippingAddressesScreen
+import com.example.mkstore.ui.profile.orders.MyOrdersScreen
+import com.example.mkstore.ui.profile.payment.PaymentMethodsScreen
 import com.example.mkstore.ui.splash.SplashScreen
 import com.example.mkstore.ui.splash.SplashViewModel
 
@@ -125,12 +128,24 @@ fun NavGraph(navController: NavHostController) {
                 authViewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
                 onLoginClick = { navController.navigate(Screen.Login.route) },
+                onOrdersClick = { navController.navigate(Screen.MyOrders.route) },
+                onAddressesClick = { navController.navigate(Screen.ShippingAddresses.route) },
+                onPaymentClick = { navController.navigate(Screen.PaymentMethods.route) },
                 onLogoutClick = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 }
             )
+        }
+        composable(Screen.MyOrders.route) {
+            MyOrdersScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(Screen.ShippingAddresses.route) {
+            ShippingAddressesScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(Screen.PaymentMethods.route) {
+            PaymentMethodsScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }

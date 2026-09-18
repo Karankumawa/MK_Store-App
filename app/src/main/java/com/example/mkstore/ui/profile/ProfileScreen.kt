@@ -1,5 +1,6 @@
 package com.example.mkstore.ui.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,6 +22,9 @@ fun ProfileScreen(
     authViewModel: AuthViewModel,
     onBackClick: () -> Unit,
     onLoginClick: () -> Unit,
+    onOrdersClick: () -> Unit,
+    onAddressesClick: () -> Unit,
+    onPaymentClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
     val authState by authViewModel.authState.collectAsState()
@@ -143,11 +147,29 @@ fun ProfileScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(text = "My Orders", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = "My Orders",
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onOrdersClick() }
+                        )
                         HorizontalDivider()
-                        Text(text = "Shipping Addresses", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = "Shipping Addresses",
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onAddressesClick() }
+                        )
                         HorizontalDivider()
-                        Text(text = "Payment Methods", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = "Payment Methods",
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onPaymentClick() }
+                        )
                     }
                 }
             }
