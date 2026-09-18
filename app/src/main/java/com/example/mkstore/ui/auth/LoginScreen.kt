@@ -30,7 +30,7 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var isSignUpMode by remember { mutableStateOf(false) }
     var showGoogleDialog by remember { mutableStateOf(false) }
-    var googleAccountEmail by remember { mutableStateOf("karankumawat640@gmail.com") }
+    var googleAccountEmail by remember { mutableStateOf("") }
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
@@ -41,28 +41,35 @@ fun LoginScreen(
     if (showGoogleDialog) {
         AlertDialog(
             onDismissRequest = { showGoogleDialog = false },
-            title = { Text("Select Google Account") },
+            title = { Text("Sign in with Google") },
             text = {
                 Column {
-                    Text("Project: project-13664921779")
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Enter your Google Account email to continue:")
+                    Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
                         value = googleAccountEmail,
                         onValueChange = { googleAccountEmail = it },
                         label = { Text("Google Account Email") },
+                        placeholder = { Text("user@gmail.com") },
+                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             },
             confirmButton = {
-                Button(onClick = {
-                    showGoogleDialog = false
-                    viewModel.loginWithGoogleAccount(
-                        googleEmail = googleAccountEmail,
-                        googleName = googleAccountEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
-                    )
-                }) {
-                    Text("Continue with Google")
+                Button(
+                    onClick = {
+                        if (googleAccountEmail.isNotBlank()) {
+                            showGoogleDialog = false
+                            viewModel.loginWithGoogleAccount(
+                                googleEmail = googleAccountEmail,
+                                googleName = googleAccountEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+                            )
+                        }
+                    },
+                    enabled = googleAccountEmail.isNotBlank()
+                ) {
+                    Text("Sign In")
                 }
             },
             dismissButton = {
@@ -108,6 +115,7 @@ fun LoginScreen(
                     if (authState is AuthState.Error) viewModel.resetState()
                 },
                 label = { Text("Email Address") },
+                placeholder = { Text("user@example.com") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
