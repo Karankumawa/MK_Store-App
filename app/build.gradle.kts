@@ -46,6 +46,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.compose.material.icons.extended)
 
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

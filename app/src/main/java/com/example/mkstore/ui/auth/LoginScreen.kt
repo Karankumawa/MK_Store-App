@@ -6,9 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -23,18 +21,24 @@ import com.example.mkstore.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel,
+    viewModel: AuthViewModel,
     onLoginSuccess: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val authState by viewModel.authState.collectAsState()
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var isSignUpMode by remember { mutableStateOf(false) }
 
-    if (state.isLoggedIn) {
-        onLoginSuccess()
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            onLoginSuccess()
+        }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Sign In to MK Store") })
+            TopAppBar(title = { Text(if (isSignUpMode) "Sign Up for MK Store" else "Sign In to MK Store") })
         }
     ) { paddingValues ->
         Column(
@@ -53,7 +57,7 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Secure Authentication",
+                text = if (isSignUpMode) "Create Account" else "Welcome Back!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -61,8 +65,11 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = state.email,
-                onValueChange = { viewModel.onEmailChanged(it) },
+                value = email,
+                onValueChange = {
+                    email = it
+                    if (authState is AuthState.Error) viewModel.resetState()
+                },
                 label = { Text("Email Address") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -70,54 +77,62 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = state.password,
-                onValueChange = { viewModel.onPasswordChanged(it) },
+                value = password,
+                onValueChange = {
+                    password = it
+                    if (authState is AuthState.Error) viewModel.resetState()
+                },
                 label = { Text("Password (Min 6 chars)") },
                 singleLine = true,
-                visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (state.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                    IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
+                    val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = "Toggle password visibility")
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (state.error != null) {
+            if (authState is AuthState.Error) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = state.error!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = (authState as AuthState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { viewModel.loginWithEmail() },
+                onClick = {
+                    if (isSignUpMode) {
+                        viewModel.signUp(email, password)
+                    } else {
+                        viewModel.login(email, password)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isLoading
+                enabled = authState !is AuthState.Loading
             ) {
-                if (state.isLoading) {
+                if (authState is AuthState.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Login with Email")
+                    Text(if (isSignUpMode) "Sign Up" else "Login")
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedButton(
-                onClick = { viewModel.loginWithGoogle() },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isLoading
-            ) {
-                if (state.isLoading) {
-                    Text("Authenticating with Google...")
-                } else {
-                    Text("Sign in with Google")
-                }
+            TextButton(onClick = {
+                isSignUpMode = !isSignUpMode
+                viewModel.resetState()
+            }) {
+                Text(if (isSignUpMode) "Already have an account? Sign In" else "Don't have an account? Sign Up")
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(onClick = onLoginSuccess) {
                 Text("Skip for now / Continue as Guest")

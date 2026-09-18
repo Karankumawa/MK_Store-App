@@ -7,8 +7,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.mkstore.ui.auth.AuthViewModel
 import com.example.mkstore.ui.auth.LoginScreen
-import com.example.mkstore.ui.auth.LoginViewModel
 import com.example.mkstore.ui.cart.CartScreen
 import com.example.mkstore.ui.cart.CartViewModel
 import com.example.mkstore.ui.checkout.CheckoutScreen
@@ -20,7 +20,6 @@ import com.example.mkstore.ui.onboarding.OnboardingViewModel
 import com.example.mkstore.ui.product_detail.ProductDetailScreen
 import com.example.mkstore.ui.product_detail.ProductDetailViewModel
 import com.example.mkstore.ui.profile.ProfileScreen
-import com.example.mkstore.ui.profile.ProfileViewModel
 import com.example.mkstore.ui.splash.SplashScreen
 import com.example.mkstore.ui.splash.SplashViewModel
 
@@ -58,7 +57,7 @@ fun NavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.Login.route) {
-            val viewModel: LoginViewModel = hiltViewModel()
+            val viewModel: AuthViewModel = hiltViewModel()
             LoginScreen(
                 viewModel = viewModel,
                 onLoginSuccess = {
@@ -119,9 +118,9 @@ fun NavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.Profile.route) {
-            val viewModel: ProfileViewModel = hiltViewModel()
+            val viewModel: AuthViewModel = hiltViewModel()
             ProfileScreen(
-                viewModel = viewModel,
+                authViewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
                 onLogoutClick = {
                     navController.navigate(Screen.Login.route) {
