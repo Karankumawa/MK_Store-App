@@ -122,6 +122,7 @@ fun NavGraph(navController: NavHostController) {
             ProfileScreen(
                 authViewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
+                onLoginClick = { navController.navigate(Screen.Login.route) },
                 onLogoutClick = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }

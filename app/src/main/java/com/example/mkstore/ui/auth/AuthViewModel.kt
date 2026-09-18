@@ -39,12 +39,13 @@ class AuthViewModel @Inject constructor(
             val photoUrl = firebaseUser.photoUrl?.toString() ?: ""
             sessionManager.saveUserData(name, email, photoUrl)
             _authState.value = AuthState.Success(UserProfileData(name, email, photoUrl))
-        } else if (sessionManager.isLoggedIn()) {
+        } else if (sessionManager.isLoggedIn() && sessionManager.getUserEmail().isNotBlank()) {
             val name = sessionManager.getUserName()
             val email = sessionManager.getUserEmail()
             val photoUrl = sessionManager.getUserPhotoUrl()
             _authState.value = AuthState.Success(UserProfileData(name, email, photoUrl))
         } else {
+            sessionManager.clearSession()
             _authState.value = AuthState.Idle
         }
     }
