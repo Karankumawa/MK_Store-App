@@ -1,5 +1,6 @@
 package com.example.mkstore.data.repository
 
+import com.example.mkstore.data.model.SupabaseUserProfile
 import com.example.mkstore.data.model.UserProfile
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -11,7 +12,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class UserRepository @Inject constructor() {
+class UserRepository @Inject constructor(
+    private val supabaseRepository: SupabaseRepository
+) {
 
     private val firestore: FirebaseFirestore?
         get() = try {
@@ -21,11 +24,25 @@ class UserRepository @Inject constructor() {
         }
 
     suspend fun saveOrUpdateProfile(profile: UserProfile) {
+        // 1. Sync to Supabase table 'user_profiles'
+        try {
+            val supabaseProfile = SupabaseUserProfile(
+                uid = profile.uid,
+                email = profile.email,
+                displayName = profile.displayName,
+                bio = profile.bio
+            )
+            supabaseRepository.saveOrUpdateUserProfile(supabaseProfile)
+        } catch (e: Exception) { }
+
+        // 2. Sync to Firestore
         val db = firestore ?: return
-        db.collection("users")
-            .document(profile.uid)
-            .set(profile, SetOptions.merge())
-            .await()
+        try {
+            db.collection("users")
+                .document(profile.uid)
+                .set(profile, SetOptions.merge())
+                .await()
+        } catch (e: Exception) { }
     }
 
     fun observeProfile(uid: String): Flow<UserProfile?> = callbackFlow {
@@ -58,9 +75,11 @@ class UserRepository @Inject constructor() {
 
     suspend fun updateBio(uid: String, newBio: String) {
         val db = firestore ?: return
-        db.collection("users")
-            .document(uid)
-            .update("bio", newBio)
-            .await()
+        try {
+            db.collection("users")
+                .document(uid)
+                .update("bio", newBio)
+                .await()
+        } catch (e: Exception) { }
     }
 }

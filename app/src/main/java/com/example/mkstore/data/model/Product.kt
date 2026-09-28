@@ -10,6 +10,8 @@ data class Product(
     @SerialName("title")
     val title: String? = null,
     val price: Double = 0.0,
+    val description: String? = null,
+    val category: String? = null,
     @SerialName("image_url")
     val imageUrl: String? = null,
     @SerialName("image")
@@ -31,6 +33,13 @@ data class Product(
 ) {
     val displayName: String
         get() = name.ifBlank { title ?: "Product" }
+
+    val displayDescription: String
+        get() = description?.ifBlank { null }
+            ?: "High-quality item from MK Store. Fast shipping, guaranteed authentic quality, and full buyer protection."
+
+    val displayCategory: String
+        get() = category?.ifBlank { null } ?: "electronics"
 
     val displayImageUrl: String?
         get() {

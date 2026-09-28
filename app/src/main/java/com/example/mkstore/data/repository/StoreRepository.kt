@@ -3,6 +3,7 @@ package com.example.mkstore.data.repository
 import android.util.Log
 import com.example.mkstore.data.local.CartDao
 import com.example.mkstore.data.local.CartEntity
+import com.example.mkstore.data.model.SupabaseCartItem
 import com.example.mkstore.data.remote.ApiService
 import com.example.mkstore.data.remote.dto.ProductDto
 import com.example.mkstore.data.remote.dto.RatingDto
@@ -12,7 +13,8 @@ import javax.inject.Inject
 class StoreRepository @Inject constructor(
     private val apiService: ApiService,
     private val cartDao: CartDao,
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val supabaseRepository: SupabaseRepository
 ) {
     // Remote & Supabase Combined
     suspend fun getProducts(): List<ProductDto> {
@@ -30,8 +32,8 @@ class StoreRepository @Inject constructor(
                         id = p.id?.toInt() ?: (1000..9999).random(),
                         title = p.displayName,
                         price = p.price,
-                        description = "Supabase Live Item - Premium Quality",
-                        category = "electronics",
+                        description = p.displayDescription,
+                        category = p.displayCategory,
                         image = img,
                         rating = RatingDto(4.8, 120)
                     )
@@ -81,11 +83,22 @@ class StoreRepository @Inject constructor(
         }
     }
 
-    // Local Cart
+    // Local Cart & Supabase Sync
     val cartItems: Flow<List<CartEntity>> = cartDao.getCartItems()
 
-    suspend fun addToCart(item: CartEntity) {
+    suspend fun addToCart(item: CartEntity, userId: String = "guest_user") {
         cartDao.insertOrUpdateCartItem(item)
+        try {
+            val supabaseCart = SupabaseCartItem(
+                userId = userId,
+                productId = item.id.toLong(),
+                title = item.title,
+                price = item.price,
+                image = item.image,
+                quantity = item.quantity
+            )
+            supabaseRepository.addToCart(supabaseCart)
+        } catch (e: Exception) { }
     }
 
     suspend fun removeFromCart(productId: Int) {

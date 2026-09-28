@@ -30,6 +30,8 @@ fun ProductScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var nameInput by remember { mutableStateOf("") }
     var priceInput by remember { mutableStateOf("") }
+    var categoryInput by remember { mutableStateOf("electronics") }
+    var descriptionInput by remember { mutableStateOf("") }
     var imageUrlInput by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -52,6 +54,18 @@ fun ProductScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
+                        value = categoryInput,
+                        onValueChange = { categoryInput = it },
+                        label = { Text("Category") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = descriptionInput,
+                        onValueChange = { descriptionInput = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
                         value = imageUrlInput,
                         onValueChange = { imageUrlInput = it },
                         label = { Text("Product Image URL (optional)") },
@@ -70,9 +84,17 @@ fun ProductScreen(
                     } else if (price == null || price <= 0) {
                         errorMessage = "Please enter a valid positive price"
                     } else {
-                        viewModel.addProduct(nameInput.trim(), price, imageUrlInput.trim())
+                        viewModel.addProduct(
+                            name = nameInput.trim(),
+                            price = price,
+                            description = descriptionInput.trim(),
+                            category = categoryInput.trim(),
+                            imageUrl = imageUrlInput.trim()
+                        )
                         nameInput = ""
                         priceInput = ""
+                        categoryInput = "electronics"
+                        descriptionInput = ""
                         imageUrlInput = ""
                         errorMessage = null
                         showAddDialog = false
