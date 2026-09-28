@@ -2,6 +2,7 @@ package com.example.mkstore.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mkstore.data.model.BannerItem
 import com.example.mkstore.data.remote.dto.ProductDto
 import com.example.mkstore.data.repository.StoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,7 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val products: List<ProductDto> = emptyList(),
     val filteredProducts: List<ProductDto> = emptyList(),
+    val banners: List<BannerItem> = emptyList(),
     val categories: List<String> = emptyList(),
     val selectedCategory: String? = null,
     val searchQuery: String = "",
@@ -31,8 +33,18 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        loadBanners()
         loadCategories()
         loadProducts()
+    }
+
+    fun loadBanners() {
+        viewModelScope.launch {
+            try {
+                val banners = repository.getBanners()
+                _uiState.value = _uiState.value.copy(banners = banners)
+            } catch (e: Exception) { }
+        }
     }
 
     fun loadCategories() {

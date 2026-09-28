@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.mkstore.data.model.BannerItem
 import com.example.mkstore.data.remote.dto.ProductDto
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +47,15 @@ fun HomeScreen(
     onProfileClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val bannerPagerState = rememberPagerState(pageCount = { 3 })
+    val displayBanners = remember(state.banners) {
+        if (state.banners.isNotEmpty()) state.banners
+        else listOf(
+            BannerItem(1, "Summer Mega Sale ⚡", "Get up to 50% off on top electronics & fashion"),
+            BannerItem(2, "New Arrival Collection 🛍️", "Check out our latest premium collection"),
+            BannerItem(3, "Free Express Shipping 🚚", "On all orders above $50 today")
+        )
+    }
+    val bannerPagerState = rememberPagerState(pageCount = { displayBanners.size })
 
     Scaffold(
         topBar = {
@@ -101,16 +110,9 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .height(160.dp)
                         ) { page ->
-                            val bannerTitle = when (page) {
-                                0 -> "Summer Mega Sale ⚡"
-                                1 -> "New Arrival Collection 🛍️"
-                                else -> "Free Express Shipping 🚚"
-                            }
-                            val bannerSubtitle = when (page) {
-                                0 -> "Get up to 50% off on top electronics & fashion"
-                                1 -> "Check out our latest premium collection"
-                                else -> "On all orders above $50 today"
-                            }
+                            val currentBanner = displayBanners.getOrNull(page)
+                            val bannerTitle = currentBanner?.title ?: "Summer Mega Sale ⚡"
+                            val bannerSubtitle = currentBanner?.subtitle ?: "Get up to 50% off on top electronics & fashion"
                             Card(
                                 modifier = Modifier.fillMaxSize(),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),

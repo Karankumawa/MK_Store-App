@@ -15,9 +15,13 @@ class ProductRepository @Inject constructor() {
     private val client = SupabaseClientProvider.client
 
     suspend fun getProducts(): List<Product> = withContext(Dispatchers.IO) {
-        client.from("products")
-            .select()
-            .decodeList<Product>()
+        try {
+            client.from("products")
+                .select()
+                .decodeList<Product>()
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     suspend fun insertProduct(product: Product) = withContext(Dispatchers.IO) {

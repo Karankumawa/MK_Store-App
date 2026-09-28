@@ -77,3 +77,12 @@ data class SupabasePaymentMethod(
     @SerialName("is_default")
     val isDefault: Boolean = false
 )
+
+@Serializable
+data class BannerItem(
+    val id: Long? = null,
+    val title: String = "",
+    val subtitle: String = "",
+    @SerialName("image_url")
+    val imageUrl: String? = null
+)

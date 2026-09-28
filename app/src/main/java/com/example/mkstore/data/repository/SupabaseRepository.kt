@@ -64,7 +64,7 @@ class SupabaseRepository @Inject constructor() {
         client.from("orders").insert(order)
     }
 
-    suspend fun getUserOrders(userId: String): List<SupabaseOrder> = withContext(Dispatchers.IO) {
+    suspend fun getUserOrders(userId: String = "guest_user"): List<SupabaseOrder> = withContext(Dispatchers.IO) {
         try {
             client.from("orders")
                 .select {
@@ -81,7 +81,7 @@ class SupabaseRepository @Inject constructor() {
         client.from("shipping_addresses").insert(address)
     }
 
-    suspend fun getShippingAddresses(userId: String): List<SupabaseShippingAddress> = withContext(Dispatchers.IO) {
+    suspend fun getShippingAddresses(userId: String = "guest_user"): List<SupabaseShippingAddress> = withContext(Dispatchers.IO) {
         try {
             client.from("shipping_addresses")
                 .select {
@@ -98,7 +98,7 @@ class SupabaseRepository @Inject constructor() {
         client.from("payment_methods").insert(paymentMethod)
     }
 
-    suspend fun getPaymentMethods(userId: String): List<SupabasePaymentMethod> = withContext(Dispatchers.IO) {
+    suspend fun getPaymentMethods(userId: String = "guest_user"): List<SupabasePaymentMethod> = withContext(Dispatchers.IO) {
         try {
             client.from("payment_methods")
                 .select {
@@ -107,6 +107,27 @@ class SupabaseRepository @Inject constructor() {
                 .decodeList<SupabasePaymentMethod>()
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    // 6. Sliding Banners / Offers Table
+    suspend fun getBanners(): List<BannerItem> = withContext(Dispatchers.IO) {
+        try {
+            client.from("banners")
+                .select()
+                .decodeList<BannerItem>()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun addBanner(banner: BannerItem) = withContext(Dispatchers.IO) {
+        client.from("banners").insert(banner)
+    }
+
+    suspend fun deleteBanner(id: Long) = withContext(Dispatchers.IO) {
+        client.from("banners").delete {
+            filter { eq("id", id) }
         }
     }
 }

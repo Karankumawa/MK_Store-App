@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.mkstore.data.model.BannerItem
 import com.example.mkstore.data.model.OrderModel
 import com.example.mkstore.data.model.ProductModel
 import com.example.mkstore.data.model.UserProfileModel
@@ -108,6 +109,12 @@ fun AdminDashboardScreen(
                     icon = { Icon(Icons.Default.Group, contentDescription = "Users") },
                     label = { Text("Users") }
                 )
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    icon = { Icon(Icons.Default.Campaign, contentDescription = "Sliding Offers") },
+                    label = { Text("Offers") }
+                )
             }
         },
         floatingActionButton = {
@@ -131,6 +138,67 @@ fun AdminDashboardScreen(
                     0 -> AdminProductsTab(products = state.products, onDelete = { viewModel.deleteProduct(it) })
                     1 -> AdminOrdersTab(orders = state.orders, onStatusChange = { id, status -> viewModel.updateOrderStatus(id, status) })
                     2 -> AdminUsersTab(users = state.users, onToggleRole = { uid, role -> viewModel.toggleUserRole(uid, role) }, onToggleBlock = { uid, isBlocked -> viewModel.toggleUserBlock(uid, isBlocked) })
+                    3 -> AdminBannersTab(banners = state.banners, onAddBanner = { t, s -> viewModel.addBanner(t, s) }, onDeleteBanner = { id -> viewModel.deleteBanner(id) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AdminBannersTab(
+    banners: List<BannerItem>,
+    onAddBanner: (String, String) -> Unit,
+    onDeleteBanner: (Long) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var subtitle by remember { mutableStateOf("") }
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "Add New Sliding Offer Banner", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Banner Title (e.g. Festival Mega Sale ⚡)") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = subtitle, onValueChange = { subtitle = it }, label = { Text("Banner Subtitle (e.g. Get up to 60% off)") }, modifier = Modifier.fillMaxWidth())
+                Button(
+                    onClick = {
+                        if (title.isNotBlank()) {
+                            onAddBanner(title.trim(), subtitle.trim())
+                            title = ""
+                            subtitle = ""
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Add Sliding Banner")
+                }
+            }
+        }
+
+        Text(text = "Active Home Carousel Banners (${banners.size})", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+
+        if (banners.isEmpty()) {
+            Text("No active custom banners. Default banners are currently displayed on Home screen.")
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(banners) { banner ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = banner.title, fontWeight = FontWeight.Bold)
+                                Text(text = banner.subtitle, style = MaterialTheme.typography.bodySmall)
+                            }
+                            banner.id?.let { id ->
+                                IconButton(onClick = { onDeleteBanner(id) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

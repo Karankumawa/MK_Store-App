@@ -14,27 +14,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-data class PaymentMethodItem(
-    val title: String,
-    val details: String,
-    val type: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentMethodsScreen(
+    viewModel: PaymentMethodsViewModel,
     onBackClick: () -> Unit
 ) {
-    val paymentMethods = remember {
-        mutableStateListOf(
-            PaymentMethodItem("Visa Credit Card", "•••• •••• •••• 4242", "Card"),
-            PaymentMethodItem("Google Pay / UPI", "user@upi", "UPI"),
-            PaymentMethodItem("Mastercard", "•••• •••• •••• 8888", "Card")
-        )
-    }
+    val paymentMethods by viewModel.paymentMethods.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
-    var title by remember { mutableStateOf("") }
+    var provider by remember { mutableStateOf("") }
     var details by remember { mutableStateOf("") }
 
     if (showAddDialog) {
@@ -44,15 +33,15 @@ fun PaymentMethodsScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Payment Method Title (e.g. Visa / UPI)") },
+                        value = provider,
+                        onValueChange = { provider = it },
+                        label = { Text("Provider Title (e.g. Google Pay / Visa)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = details,
                         onValueChange = { details = it },
-                        label = { Text("Card Number or UPI ID") },
+                        label = { Text("UPI ID or Card Number") },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -60,15 +49,15 @@ fun PaymentMethodsScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        if (title.isNotBlank() && details.isNotBlank()) {
-                            paymentMethods.add(PaymentMethodItem(title, details, if (details.contains("@")) "UPI" else "Card"))
-                            title = ""
+                        if (provider.isNotBlank() && details.isNotBlank()) {
+                            viewModel.addPaymentMethod(provider.trim(), details.trim())
+                            provider = ""
                             details = ""
                             showAddDialog = false
                         }
                     }
                 ) {
-                    Text("Add Method")
+                    Text("Save to Supabase")
                 }
             },
             dismissButton = {
@@ -82,7 +71,7 @@ fun PaymentMethodsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Payment Methods") },
+                title = { Text("Payment Methods (Supabase)") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -96,35 +85,46 @@ fun PaymentMethodsScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(paymentMethods) { item ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+        if (paymentMethods.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No payment methods saved yet.")
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(paymentMethods) { item ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        Icon(
-                            Icons.Default.CreditCard,
-                            contentDescription = "Payment Method",
-                            modifier = Modifier.size(36.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = item.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(text = item.details, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.CreditCard,
+                                contentDescription = "Payment Method",
+                                modifier = Modifier.size(36.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = item.provider ?: item.paymentType, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(text = item.details ?: "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                            }
                         }
                     }
                 }

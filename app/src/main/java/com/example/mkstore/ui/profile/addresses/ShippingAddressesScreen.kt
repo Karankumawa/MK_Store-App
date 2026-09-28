@@ -13,29 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-data class AddressItem(
-    val title: String,
-    val fullAddress: String,
-    val phone: String,
-    val isDefault: Boolean = false
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShippingAddressesScreen(
+    viewModel: ShippingAddressesViewModel,
     onBackClick: () -> Unit
 ) {
-    val addresses = remember {
-        mutableStateListOf(
-            AddressItem("Home", "123 Green Street, Apartment 4B, New York, NY 10001", "+1 234 567 890", isDefault = true),
-            AddressItem("Work", "456 Commerce Blvd, Suite 200, San Francisco, CA 94105", "+1 987 654 321", isDefault = false)
-        )
-    }
+    val addresses by viewModel.addresses.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var newTitle by remember { mutableStateOf("") }
     var newAddress by remember { mutableStateOf("") }
     var newPhone by remember { mutableStateOf("") }
+    var newCity by remember { mutableStateOf("New Delhi") }
 
     if (showAddDialog) {
         AlertDialog(
@@ -46,13 +36,7 @@ fun ShippingAddressesScreen(
                     OutlinedTextField(
                         value = newTitle,
                         onValueChange = { newTitle = it },
-                        label = { Text("Address Label (e.g. Home, Office)") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = newAddress,
-                        onValueChange = { newAddress = it },
-                        label = { Text("Full Address") },
+                        label = { Text("Full Name (e.g. Karan Kumar)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
@@ -61,13 +45,31 @@ fun ShippingAddressesScreen(
                         label = { Text("Phone Number") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    OutlinedTextField(
+                        value = newAddress,
+                        onValueChange = { newAddress = it },
+                        label = { Text("Street Address") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = newCity,
+                        onValueChange = { newCity = it },
+                        label = { Text("City") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
                         if (newTitle.isNotBlank() && newAddress.isNotBlank()) {
-                            addresses.add(AddressItem(newTitle, newAddress, newPhone, isDefault = false))
+                            viewModel.addAddress(
+                                fullName = newTitle.trim(),
+                                phone = newPhone.trim(),
+                                street = newAddress.trim(),
+                                city = newCity.trim(),
+                                postalCode = "110001"
+                            )
                             newTitle = ""
                             newAddress = ""
                             newPhone = ""
@@ -75,7 +77,7 @@ fun ShippingAddressesScreen(
                         }
                     }
                 ) {
-                    Text("Save Address")
+                    Text("Save to Supabase")
                 }
             },
             dismissButton = {
@@ -89,7 +91,7 @@ fun ShippingAddressesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Shipping Addresses") },
+                title = { Text("Shipping Addresses (Supabase)") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -103,47 +105,58 @@ fun ShippingAddressesScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(addresses) { item ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+        if (addresses.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No shipping addresses saved yet.")
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(addresses) { item ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            Text(text = item.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                            if (item.isDefault) {
-                                Surface(
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    shape = MaterialTheme.shapes.extraSmall
-                                ) {
-                                    Text(
-                                        text = "DEFAULT",
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = item.fullName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                                if (item.isDefault) {
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        shape = MaterialTheme.shapes.extraSmall
+                                    ) {
+                                        Text(
+                                            text = "DEFAULT",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
                                 }
                             }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = "${item.streetAddress}, ${item.city}, ${item.country}", style = MaterialTheme.typography.bodyMedium)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(text = "Phone: ${item.phoneNumber}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = item.fullAddress, style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Phone: ${item.phone}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                     }
                 }
             }

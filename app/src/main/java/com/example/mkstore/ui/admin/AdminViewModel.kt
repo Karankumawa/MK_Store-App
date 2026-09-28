@@ -2,10 +2,12 @@ package com.example.mkstore.ui.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mkstore.data.model.BannerItem
 import com.example.mkstore.data.model.OrderModel
 import com.example.mkstore.data.model.ProductModel
 import com.example.mkstore.data.model.UserProfileModel
 import com.example.mkstore.data.repository.AdminRepository
+import com.example.mkstore.data.repository.StoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,13 +18,15 @@ data class AdminUiState(
     val products: List<ProductModel> = emptyList(),
     val orders: List<OrderModel> = emptyList(),
     val users: List<UserProfileModel> = emptyList(),
+    val banners: List<BannerItem> = emptyList(),
     val message: String? = null,
     val error: String? = null
 )
 
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    private val adminRepository: AdminRepository
+    private val adminRepository: AdminRepository,
+    private val storeRepository: StoreRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminUiState())
@@ -30,6 +34,41 @@ class AdminViewModel @Inject constructor(
 
     init {
         observeAdminData()
+        loadBanners()
+    }
+
+    fun loadBanners() {
+        viewModelScope.launch {
+            try {
+                val banners = storeRepository.getBanners()
+                _uiState.value = _uiState.value.copy(banners = banners)
+            } catch (e: Exception) { }
+        }
+    }
+
+    fun addBanner(title: String, subtitle: String) {
+        if (title.isBlank()) return
+        viewModelScope.launch {
+            try {
+                storeRepository.addBanner(BannerItem(title = title, subtitle = subtitle))
+                loadBanners()
+                _uiState.value = _uiState.value.copy(message = "Banner offer added successfully!")
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.localizedMessage)
+            }
+        }
+    }
+
+    fun deleteBanner(id: Long) {
+        viewModelScope.launch {
+            try {
+                storeRepository.deleteBanner(id)
+                loadBanners()
+                _uiState.value = _uiState.value.copy(message = "Banner offer removed")
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.localizedMessage)
+            }
+        }
     }
 
     private fun observeAdminData() {
@@ -40,7 +79,7 @@ class AdminViewModel @Inject constructor(
                 adminRepository.observeOrders(),
                 adminRepository.observeUsers()
             ) { products, orders, users ->
-                AdminUiState(
+                _uiState.value.copy(
                     isLoading = false,
                     products = products,
                     orders = orders,

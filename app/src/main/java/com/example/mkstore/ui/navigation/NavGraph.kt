@@ -23,8 +23,11 @@ import com.example.mkstore.ui.product_detail.ProductDetailScreen
 import com.example.mkstore.ui.product_detail.ProductDetailViewModel
 import com.example.mkstore.ui.profile.ProfileScreen
 import com.example.mkstore.ui.profile.addresses.ShippingAddressesScreen
+import com.example.mkstore.ui.profile.addresses.ShippingAddressesViewModel
 import com.example.mkstore.ui.profile.orders.MyOrdersScreen
+import com.example.mkstore.ui.profile.orders.MyOrdersViewModel
 import com.example.mkstore.ui.profile.payment.PaymentMethodsScreen
+import com.example.mkstore.ui.profile.payment.PaymentMethodsViewModel
 import com.example.mkstore.ui.splash.SplashScreen
 import com.example.mkstore.ui.splash.SplashViewModel
 
@@ -148,13 +151,25 @@ fun NavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.MyOrders.route) {
-            MyOrdersScreen(onBackClick = { navController.popBackStack() })
+            val viewModel: MyOrdersViewModel = hiltViewModel()
+            MyOrdersScreen(
+                viewModel = viewModel,
+                onBackClick = { navController.popBackStack() }
+            )
         }
         composable(Screen.ShippingAddresses.route) {
-            ShippingAddressesScreen(onBackClick = { navController.popBackStack() })
+            val viewModel: ShippingAddressesViewModel = hiltViewModel()
+            ShippingAddressesScreen(
+                viewModel = viewModel,
+                onBackClick = { navController.popBackStack() }
+            )
         }
         composable(Screen.PaymentMethods.route) {
-            PaymentMethodsScreen(onBackClick = { navController.popBackStack() })
+            val viewModel: PaymentMethodsViewModel = hiltViewModel()
+            PaymentMethodsScreen(
+                viewModel = viewModel,
+                onBackClick = { navController.popBackStack() }
+            )
         }
         composable(Screen.AdminDashboard.route) {
             val adminViewModel: AdminViewModel = hiltViewModel()
