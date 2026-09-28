@@ -14,8 +14,11 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = false,
     val products: List<ProductDto> = emptyList(),
+    val filteredProducts: List<ProductDto> = emptyList(),
     val categories: List<String> = emptyList(),
     val selectedCategory: String? = null,
+    val searchQuery: String = "",
+    val favoriteIds: Set<Int> = emptySet(),
     val error: String? = null
 )
 
@@ -37,9 +40,7 @@ class HomeViewModel @Inject constructor(
             try {
                 val categories = repository.getCategories()
                 _uiState.value = _uiState.value.copy(categories = categories)
-            } catch (e: Exception) {
-                // handle error or ignore for mock
-            }
+            } catch (e: Exception) { }
         }
     }
 
@@ -52,10 +53,36 @@ class HomeViewModel @Inject constructor(
                 } else {
                     repository.getProductsByCategory(category)
                 }
-                _uiState.value = _uiState.value.copy(isLoading = false, products = products)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    products = products,
+                    filteredProducts = filterProductsList(products, _uiState.value.searchQuery)
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.localizedMessage)
             }
         }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _uiState.value = _uiState.value.copy(
+            searchQuery = query,
+            filteredProducts = filterProductsList(_uiState.value.products, query)
+        )
+    }
+
+    fun toggleFavorite(productId: Int) {
+        val currentFavs = _uiState.value.favoriteIds.toMutableSet()
+        if (currentFavs.contains(productId)) {
+            currentFavs.remove(productId)
+        } else {
+            currentFavs.add(productId)
+        }
+        _uiState.value = _uiState.value.copy(favoriteIds = currentFavs)
+    }
+
+    private fun filterProductsList(products: List<ProductDto>, query: String): List<ProductDto> {
+        if (query.isBlank()) return products
+        return products.filter { it.title.contains(query, ignoreCase = true) || it.category.contains(query, ignoreCase = true) }
     }
 }
