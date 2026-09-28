@@ -64,6 +64,6 @@ class SessionManager @Inject constructor(
         private const val KEY_USER_EMAIL = "key_user_email"
         private const val KEY_USER_NAME = "key_user_name"
         private const val KEY_USER_PHOTO_URL = "key_user_photo_url"
-        const val GOOGLE_WEB_CLIENT_ID = "13664921779-nvlfrtjlp493uao404d3lunsjmkapeol.apps.googleusercontent.com"
+        const val GOOGLE_WEB_CLIENT_ID = "229066895617-stbbpgcvoe86l9n7iik0mhlj6jbpm9tg.apps.googleusercontent.com"
     }
 }
