@@ -27,7 +27,11 @@ class PaymentMethodsViewModel @Inject constructor(
 
     fun loadPaymentMethods() {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().ifBlank { "guest_user" }
+            val userEmail = sessionManager.getUserEmail().trim()
+            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) {
+                _paymentMethods.value = emptyList()
+                return@launch
+            }
             val list = supabaseRepository.getPaymentMethods(userEmail)
             _paymentMethods.value = list
         }
@@ -35,7 +39,8 @@ class PaymentMethodsViewModel @Inject constructor(
 
     fun addPaymentMethod(provider: String, details: String) {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().ifBlank { "guest_user" }
+            val userEmail = sessionManager.getUserEmail().trim()
+            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) return@launch
             val type = if (details.contains("@")) "UPI" else "Card"
             val newMethod = SupabasePaymentMethod(
                 userId = userEmail,

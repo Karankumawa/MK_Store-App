@@ -27,7 +27,11 @@ class MyOrdersViewModel @Inject constructor(
 
     fun loadOrders() {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().ifBlank { "guest_user" }
+            val userEmail = sessionManager.getUserEmail().trim()
+            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) {
+                _orders.value = emptyList()
+                return@launch
+            }
             val list = supabaseRepository.getUserOrders(userEmail)
             _orders.value = list
         }

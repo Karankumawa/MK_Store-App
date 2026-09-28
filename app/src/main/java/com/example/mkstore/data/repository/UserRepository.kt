@@ -23,14 +23,15 @@ class UserRepository @Inject constructor(
             null
         }
 
-    suspend fun saveOrUpdateProfile(profile: UserProfile) {
+    suspend fun saveOrUpdateProfile(profile: UserProfile, role: String = "user") {
         // 1. Sync to Supabase table 'user_profiles'
         try {
             val supabaseProfile = SupabaseUserProfile(
                 uid = profile.uid,
                 email = profile.email,
                 displayName = profile.displayName,
-                bio = profile.bio
+                bio = profile.bio,
+                role = role
             )
             supabaseRepository.saveOrUpdateUserProfile(supabaseProfile)
         } catch (e: Exception) { }

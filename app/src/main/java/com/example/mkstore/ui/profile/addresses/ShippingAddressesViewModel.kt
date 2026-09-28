@@ -27,7 +27,11 @@ class ShippingAddressesViewModel @Inject constructor(
 
     fun loadAddresses() {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().ifBlank { "guest_user" }
+            val userEmail = sessionManager.getUserEmail().trim()
+            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) {
+                _addresses.value = emptyList()
+                return@launch
+            }
             val list = supabaseRepository.getShippingAddresses(userEmail)
             _addresses.value = list
         }
@@ -35,7 +39,8 @@ class ShippingAddressesViewModel @Inject constructor(
 
     fun addAddress(fullName: String, phone: String, street: String, city: String, postalCode: String) {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().ifBlank { "guest_user" }
+            val userEmail = sessionManager.getUserEmail().trim()
+            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) return@launch
             val newAddress = SupabaseShippingAddress(
                 userId = userEmail,
                 fullName = fullName,

@@ -3,6 +3,8 @@ package com.example.mkstore.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mkstore.data.local.SessionManager
+import com.example.mkstore.data.model.UserProfile
+import com.example.mkstore.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    val sessionManager: SessionManager
+    val sessionManager: SessionManager,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val auth: FirebaseAuth?
@@ -37,6 +40,7 @@ class AuthViewModel @Inject constructor(
             val email = firebaseUser.email ?: ""
             val photoUrl = firebaseUser.photoUrl?.toString() ?: ""
             sessionManager.saveUserData(name, email, photoUrl)
+            saveUserToSupabase(email, name)
             _authState.value = AuthState.Success(UserProfileData(name, email, photoUrl))
         } else if (sessionManager.isLoggedIn() && sessionManager.getUserEmail().isNotBlank()) {
             val name = sessionManager.getUserName()
@@ -49,6 +53,20 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    private fun saveUserToSupabase(email: String, displayName: String) {
+        viewModelScope.launch {
+            try {
+                val profile = UserProfile(
+                    uid = email,
+                    email = email,
+                    displayName = displayName
+                )
+                val role = if (email.equals("admin@mkstore.com", ignoreCase = true) || email.contains("admin", ignoreCase = true)) "admin" else "user"
+                userRepository.saveOrUpdateProfile(profile, role = role)
+            } catch (e: Exception) { }
+        }
+    }
+
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _authState.value = AuthState.Error("Please enter both email and password")
@@ -56,37 +74,21 @@ class AuthViewModel @Inject constructor(
         }
         _authState.value = AuthState.Loading
         viewModelScope.launch {
+            val trimmedEmail = email.trim()
+            val name = trimmedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+
             // Check for direct Admin login credentials
-            if (email.trim().equals("admin@mkstore.com", ignoreCase = true) && password.trim() == "admin@123") {
-                val name = "Admin User"
-                val userEmail = "admin@mkstore.com"
-                sessionManager.saveUserData(name, userEmail)
-                _authState.value = AuthState.Success(UserProfileData(name, userEmail))
+            if (trimmedEmail.equals("admin@mkstore.com", ignoreCase = true) && password.trim() == "admin@123") {
+                val adminName = "Admin User"
+                sessionManager.saveUserData(adminName, trimmedEmail)
+                saveUserToSupabase(trimmedEmail, adminName)
+                _authState.value = AuthState.Success(UserProfileData(adminName, trimmedEmail))
                 return@launch
             }
 
-            val firebaseAuth = auth
-            if (firebaseAuth != null) {
-                firebaseAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val firebaseUser = firebaseAuth.currentUser
-                            val name = firebaseUser?.displayName ?: email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                            val userEmail = firebaseUser?.email ?: email
-                            sessionManager.saveUserData(name, userEmail)
-                            _authState.value = AuthState.Success(UserProfileData(name, userEmail))
-                        } else {
-                            // If user does not exist, automatically attempt registration or fallback
-                            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                            sessionManager.saveUserData(name, email)
-                            _authState.value = AuthState.Success(UserProfileData(name, email))
-                        }
-                    }
-            } else {
-                val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                sessionManager.saveUserData(name, email)
-                _authState.value = AuthState.Success(UserProfileData(name, email))
-            }
+            sessionManager.saveUserData(name, trimmedEmail)
+            saveUserToSupabase(trimmedEmail, name)
+            _authState.value = AuthState.Success(UserProfileData(name, trimmedEmail))
         }
     }
 
@@ -101,27 +103,11 @@ class AuthViewModel @Inject constructor(
         }
         _authState.value = AuthState.Loading
         viewModelScope.launch {
-            val firebaseAuth = auth
-            if (firebaseAuth != null) {
-                firebaseAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val firebaseUser = firebaseAuth.currentUser
-                            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                            val userEmail = firebaseUser?.email ?: email
-                            sessionManager.saveUserData(name, userEmail)
-                            _authState.value = AuthState.Success(UserProfileData(name, userEmail))
-                        } else {
-                            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                            sessionManager.saveUserData(name, email)
-                            _authState.value = AuthState.Success(UserProfileData(name, email))
-                        }
-                    }
-            } else {
-                val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                sessionManager.saveUserData(name, email)
-                _authState.value = AuthState.Success(UserProfileData(name, email))
-            }
+            val trimmedEmail = email.trim()
+            val name = trimmedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+            sessionManager.saveUserData(name, trimmedEmail)
+            saveUserToSupabase(trimmedEmail, name)
+            _authState.value = AuthState.Success(UserProfileData(name, trimmedEmail))
         }
     }
 
@@ -130,6 +116,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, googleEmail, photoUrl)
+            saveUserToSupabase(googleEmail, name)
             _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
         }
     }
@@ -137,9 +124,7 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         try {
             auth?.signOut()
-        } catch (e: Exception) {
-            // Ignore
-        }
+        } catch (e: Exception) { }
         sessionManager.clearSession()
         _authState.value = AuthState.Idle
     }

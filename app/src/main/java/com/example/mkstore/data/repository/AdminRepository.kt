@@ -2,137 +2,115 @@ package com.example.mkstore.data.repository
 
 import com.example.mkstore.data.model.OrderModel
 import com.example.mkstore.data.model.ProductModel
+import com.example.mkstore.data.model.SupabaseOrder
+import com.example.mkstore.data.model.SupabaseUserProfile
 import com.example.mkstore.data.model.UserProfileModel
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
+import com.example.mkstore.data.remote.SupabaseClientProvider
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class AdminRepository @Inject constructor() {
-
-    private val db: FirebaseFirestore?
-        get() = try {
-            FirebaseFirestore.getInstance()
+class AdminRepository @Inject constructor(
+    private val supabaseRepository: SupabaseRepository,
+    private val productRepository: ProductRepository
+) {
+    // 1. Supabase Live Products
+    suspend fun getProducts(): List<ProductModel> = withContext(Dispatchers.IO) {
+        try {
+            val list = productRepository.getProducts()
+            list.map {
+                ProductModel(
+                    id = (it.id ?: 0L).toString(),
+                    name = it.displayName,
+                    price = it.price,
+                    description = it.displayDescription,
+                    category = it.displayCategory,
+                    imageUrl = it.displayImageUrl ?: ""
+                )
+            }
         } catch (e: Exception) {
-            null
+            emptyList()
         }
+    }
 
-    suspend fun getUserRole(uid: String): String {
-        val firestore = db ?: return "user"
-        return try {
-            val doc = firestore.collection("users").document(uid).get().await()
-            doc.getString("role") ?: "user"
+    suspend fun deleteProduct(id: Long) = withContext(Dispatchers.IO) {
+        try {
+            productRepository.deleteProduct(id)
+        } catch (e: Exception) { }
+    }
+
+    // 2. Supabase Live Users
+    suspend fun getUsers(): List<UserProfileModel> = withContext(Dispatchers.IO) {
+        try {
+            val client = SupabaseClientProvider.client
+            val list = client.from("user_profiles").select().decodeList<SupabaseUserProfile>()
+            list.map {
+                UserProfileModel(
+                    uid = it.uid,
+                    email = it.email,
+                    displayName = it.displayName ?: it.email.substringBefore("@"),
+                    role = it.role,
+                    isBlocked = it.isBlocked
+                )
+            }
         } catch (e: Exception) {
-            "user"
+            emptyList()
         }
     }
 
-    // Products Management
-    suspend fun addProduct(product: ProductModel) {
-        val firestore = db ?: return
-        val docRef = if (product.id.isBlank()) firestore.collection("products").document() else firestore.collection("products").document(product.id)
-        val finalProduct = product.copy(id = docRef.id)
-        docRef.set(finalProduct, SetOptions.merge()).await()
-    }
-
-    suspend fun updateProduct(product: ProductModel) {
-        val firestore = db ?: return
-        if (product.id.isBlank()) return
-        firestore.collection("products").document(product.id)
-            .set(product, SetOptions.merge()).await()
-    }
-
-    suspend fun deleteProduct(productId: String) {
-        val firestore = db ?: return
-        firestore.collection("products").document(productId).delete().await()
-    }
-
-    fun observeProducts(): Flow<List<ProductModel>> = callbackFlow {
-        val firestore = db
-        if (firestore == null) {
-            trySend(emptyList())
-            close()
-            return@callbackFlow
-        }
-        val listener = firestore.collection("products").addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
+    suspend fun updateUserRole(uid: String, newRole: String) = withContext(Dispatchers.IO) {
+        try {
+            val client = SupabaseClientProvider.client
+            client.from("user_profiles").update({
+                set("role", newRole)
+            }) {
+                filter { eq("uid", uid) }
             }
-            if (snapshot != null) {
-                val list = snapshot.toObjects(ProductModel::class.java)
-                trySend(list)
-            } else {
-                trySend(emptyList())
-            }
-        }
-        awaitClose { listener.remove() }
+        } catch (e: Exception) { }
     }
 
-    // Orders Management
-    fun observeOrders(): Flow<List<OrderModel>> = callbackFlow {
-        val firestore = db
-        if (firestore == null) {
-            trySend(emptyList())
-            close()
-            return@callbackFlow
-        }
-        val listener = firestore.collection("orders").addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
+    suspend fun toggleUserBlockStatus(uid: String, isBlocked: Boolean) = withContext(Dispatchers.IO) {
+        try {
+            val client = SupabaseClientProvider.client
+            client.from("user_profiles").update({
+                set("is_blocked", isBlocked)
+            }) {
+                filter { eq("uid", uid) }
             }
-            if (snapshot != null) {
-                val list = snapshot.toObjects(OrderModel::class.java)
-                trySend(list)
-            } else {
-                trySend(emptyList())
-            }
-        }
-        awaitClose { listener.remove() }
+        } catch (e: Exception) { }
     }
 
-    suspend fun updateOrderStatus(orderId: String, newStatus: String) {
-        val firestore = db ?: return
-        firestore.collection("orders").document(orderId)
-            .update("status", newStatus, "updatedAt", System.currentTimeMillis()).await()
-    }
-
-    // Users Management
-    fun observeUsers(): Flow<List<UserProfileModel>> = callbackFlow {
-        val firestore = db
-        if (firestore == null) {
-            trySend(emptyList())
-            close()
-            return@callbackFlow
-        }
-        val listener = firestore.collection("users").addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
+    // 3. Supabase Live Orders
+    suspend fun getOrders(): List<OrderModel> = withContext(Dispatchers.IO) {
+        try {
+            val client = SupabaseClientProvider.client
+            val list = client.from("orders").select().decodeList<SupabaseOrder>()
+            list.map {
+                OrderModel(
+                    orderId = it.orderId,
+                    userId = it.userId,
+                    itemsList = it.itemsSummary,
+                    totalAmount = it.totalAmount,
+                    shippingAddress = it.shippingAddress,
+                    status = it.status
+                )
             }
-            if (snapshot != null) {
-                val list = snapshot.toObjects(UserProfileModel::class.java)
-                trySend(list)
-            } else {
-                trySend(emptyList())
-            }
+        } catch (e: Exception) {
+            emptyList()
         }
-        awaitClose { listener.remove() }
     }
 
-    suspend fun updateUserRole(uid: String, newRole: String) {
-        val firestore = db ?: return
-        firestore.collection("users").document(uid).update("role", newRole).await()
-    }
-
-    suspend fun toggleUserBlockStatus(uid: String, isBlocked: Boolean) {
-        val firestore = db ?: return
-        firestore.collection("users").document(uid).update("isBlocked", isBlocked).await()
+    suspend fun updateOrderStatus(orderId: String, newStatus: String) = withContext(Dispatchers.IO) {
+        try {
+            val client = SupabaseClientProvider.client
+            client.from("orders").update({
+                set("status", newStatus)
+            }) {
+                filter { eq("order_id", orderId) }
+            }
+        } catch (e: Exception) { }
     }
 }
