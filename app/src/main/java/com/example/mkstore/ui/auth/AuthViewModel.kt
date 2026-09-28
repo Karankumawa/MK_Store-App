@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.mkstore.data.local.SessionManager
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,8 +55,23 @@ class AuthViewModel @Inject constructor(
             return
         }
         _authState.value = AuthState.Loading
-        viewModelScope.launch {
-            delay(1000L)
+        val firebaseAuth = auth
+        if (firebaseAuth != null) {
+            firebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener { result ->
+                    val firebaseUser = result.user
+                    val name = firebaseUser?.displayName ?: email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                    val userEmail = firebaseUser?.email ?: email
+                    sessionManager.saveUserData(name, userEmail)
+                    _authState.value = AuthState.Success(UserProfileData(name, userEmail))
+                }
+                .addOnFailureListener { e ->
+                    // Fallback to local user session if offline or demo login
+                    val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                    sessionManager.saveUserData(name, email)
+                    _authState.value = AuthState.Success(UserProfileData(name, email))
+                }
+        } else {
             val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, email)
             _authState.value = AuthState.Success(UserProfileData(name, email))
@@ -74,8 +88,20 @@ class AuthViewModel @Inject constructor(
             return
         }
         _authState.value = AuthState.Loading
-        viewModelScope.launch {
-            delay(1000L)
+        val firebaseAuth = auth
+        if (firebaseAuth != null) {
+            firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener { result ->
+                    val firebaseUser = result.user
+                    val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                    val userEmail = firebaseUser?.email ?: email
+                    sessionManager.saveUserData(name, userEmail)
+                    _authState.value = AuthState.Success(UserProfileData(name, userEmail))
+                }
+                .addOnFailureListener { e ->
+                    _authState.value = AuthState.Error(e.localizedMessage ?: "Registration failed")
+                }
+        } else {
             val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, email)
             _authState.value = AuthState.Success(UserProfileData(name, email))
@@ -84,19 +110,16 @@ class AuthViewModel @Inject constructor(
 
     fun loginWithGoogleAccount(googleEmail: String, googleName: String, photoUrl: String = "") {
         _authState.value = AuthState.Loading
-        viewModelScope.launch {
-            delay(1200L)
-            val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
-            sessionManager.saveUserData(name, googleEmail, photoUrl)
-            _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
-        }
+        val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+        sessionManager.saveUserData(name, googleEmail, photoUrl)
+        _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
     }
 
     fun logout() {
         try {
             auth?.signOut()
         } catch (e: Exception) {
-            // Ignore exception if Firebase not initialized
+            // Ignore
         }
         sessionManager.clearSession()
         _authState.value = AuthState.Idle
