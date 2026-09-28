@@ -3,6 +3,7 @@ package com.example.mkstore.data.repository
 import com.example.mkstore.data.model.Product
 import com.example.mkstore.data.remote.SupabaseClientProvider
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -31,5 +32,13 @@ class ProductRepository @Inject constructor() {
                     eq("id", id)
                 }
             }
+    }
+
+    suspend fun uploadProductImage(imageBytes: ByteArray, fileName: String): String = withContext(Dispatchers.IO) {
+        val bucket = client.storage.from("product-images")
+        bucket.upload(fileName, imageBytes) {
+            upsert = true
+        }
+        bucket.publicUrl(fileName)
     }
 }

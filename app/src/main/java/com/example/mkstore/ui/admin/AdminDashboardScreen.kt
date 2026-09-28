@@ -10,9 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.mkstore.data.model.OrderModel
 import com.example.mkstore.data.model.ProductModel
 import com.example.mkstore.data.model.UserProfileModel
@@ -33,6 +36,7 @@ fun AdminDashboardScreen(
     var newDesc by remember { mutableStateOf("") }
     var newStock by remember { mutableStateOf("") }
     var newCategory by remember { mutableStateOf("electronics") }
+    var newImageUrl by remember { mutableStateOf("") }
 
     if (showAddProductDialog) {
         AlertDialog(
@@ -44,6 +48,7 @@ fun AdminDashboardScreen(
                     OutlinedTextField(value = newPrice, onValueChange = { newPrice = it }, label = { Text("Price ($)") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = newStock, onValueChange = { newStock = it }, label = { Text("Stock Quantity") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = newCategory, onValueChange = { newCategory = it }, label = { Text("Category") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = newImageUrl, onValueChange = { newImageUrl = it }, label = { Text("Image URL") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = newDesc, onValueChange = { newDesc = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth())
                 }
             },
@@ -52,11 +57,12 @@ fun AdminDashboardScreen(
                     val price = newPrice.toDoubleOrNull() ?: 0.0
                     val stock = newStock.toIntOrNull() ?: 0
                     if (newName.isNotBlank() && price > 0) {
-                        viewModel.addProduct(newName, price, newDesc, stock, newCategory)
+                        viewModel.addProduct(newName, price, newDesc, stock, newCategory, newImageUrl)
                         newName = ""
                         newPrice = ""
                         newDesc = ""
                         newStock = ""
+                        newImageUrl = ""
                         showAddProductDialog = false
                     }
                 }) {
@@ -149,6 +155,15 @@ fun AdminProductsTab(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        AsyncImage(
+                            model = product.imageUrl.ifBlank { "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg" },
+                            contentDescription = product.name,
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(MaterialTheme.shapes.small),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(text = product.name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                             Text(text = "Price: $${product.price} | Stock: ${product.stockQuantity}", style = MaterialTheme.typography.bodyMedium)

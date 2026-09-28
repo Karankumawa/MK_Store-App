@@ -3,6 +3,7 @@ package com.example.mkstore.data.remote
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.serializer.KotlinXSerializer
+import io.github.jan.supabase.storage.Storage
 import io.ktor.client.engine.okhttp.OkHttp
 import kotlinx.serialization.json.Json
 
@@ -25,6 +26,7 @@ object SupabaseClientProvider {
                     }
                 )
             }
+            install(Storage)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.mkstore.data.repository
 
+import android.util.Log
 import com.example.mkstore.data.local.CartDao
 import com.example.mkstore.data.local.CartEntity
 import com.example.mkstore.data.remote.ApiService
@@ -20,21 +21,24 @@ class StoreRepository @Inject constructor(
         // 1. Fetch from Supabase PostgreSQL Database
         try {
             val supabaseProducts = productRepository.getProducts()
+            Log.d("SupabaseDebug", "Fetched ${supabaseProducts.size} products from Supabase: $supabaseProducts")
             for (p in supabaseProducts) {
+                val img = p.displayImageUrl ?: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400"
+                Log.d("SupabaseDebug", "Product: name=${p.displayName}, price=${p.price}, finalImg=$img")
                 resultList.add(
                     ProductDto(
                         id = p.id?.toInt() ?: (1000..9999).random(),
-                        title = p.name,
+                        title = p.displayName,
                         price = p.price,
                         description = "Supabase Live Item - Premium Quality",
                         category = "electronics",
-                        image = "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
+                        image = img,
                         rating = RatingDto(4.8, 120)
                     )
                 )
             }
         } catch (e: Exception) {
-            // Ignore Supabase error if offline
+            Log.e("SupabaseDebug", "Error fetching products from Supabase", e)
         }
 
         // 2. Fetch from ApiService (FakeStoreAPI)
@@ -68,10 +72,12 @@ class StoreRepository @Inject constructor(
     }
 
     suspend fun getProductById(id: Int): ProductDto {
+        val loaded = getProducts().find { it.id == id }
+        if (loaded != null) return loaded
         return try {
             apiService.getProductById(id)
         } catch (e: Exception) {
-            getProducts().find { it.id == id } ?: getDefaultFallbackProducts().first()
+            getDefaultFallbackProducts().first()
         }
     }
 
@@ -98,7 +104,7 @@ class StoreRepository @Inject constructor(
                 price = 109.95,
                 description = "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
                 category = "men's clothing",
-                image = "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
+                image = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400",
                 rating = RatingDto(3.9, 120)
             ),
             ProductDto(
@@ -107,7 +113,7 @@ class StoreRepository @Inject constructor(
                 price = 22.3,
                 description = "Slim-fit style, contrast raglan long sleeve, three-button henley placket, light weight & soft fabric for breathable and comfortable wearing.",
                 category = "men's clothing",
-                image = "https://fakestoreapi.com/img/71-3HjGNDUL._AC_SY879._SX._UX._SY._UY_.jpg",
+                image = "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400",
                 rating = RatingDto(4.1, 259)
             ),
             ProductDto(
@@ -116,7 +122,7 @@ class StoreRepository @Inject constructor(
                 price = 55.99,
                 description = "great outerwear jackets for Spring/Autumn/Winter, suitable for many occasions, such as working, hiking, camping, mountain/rock climbing, cycling, traveling or other outdoors.",
                 category = "men's clothing",
-                image = "https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg",
+                image = "https://images.unsplash.com/photo-1544441893-675973e31985?w=400",
                 rating = RatingDto(4.7, 500)
             ),
             ProductDto(
@@ -125,7 +131,7 @@ class StoreRepository @Inject constructor(
                 price = 695.0,
                 description = "From our Legends Collection, the Naga was inspired by the mythical water dragon that protects the ocean's pearl. Wear facing inward to be bestowed with love and abundance, or outward for protection.",
                 category = "jewelery",
-                image = "https://fakestoreapi.com/img/71pWzhdJNwL._AC_UL640_QL65_ML3_.jpg",
+                image = "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400",
                 rating = RatingDto(4.6, 400)
             )
         )

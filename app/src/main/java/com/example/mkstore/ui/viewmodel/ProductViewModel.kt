@@ -41,11 +41,15 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    fun addProduct(name: String, price: Double) {
+    fun addProduct(name: String, price: Double, imageUrl: String? = null) {
         if (name.isBlank() || price <= 0) return
         viewModelScope.launch {
             try {
-                val newProduct = Product(name = name, price = price)
+                val newProduct = Product(
+                    name = name,
+                    price = price,
+                    imageUrl = imageUrl?.ifBlank { null }
+                )
                 repository.insertProduct(newProduct)
                 loadProducts()
             } catch (e: Exception) {

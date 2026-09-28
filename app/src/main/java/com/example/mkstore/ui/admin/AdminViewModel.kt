@@ -54,7 +54,7 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun addProduct(name: String, price: Double, description: String, stockQuantity: Int, category: String) {
+    fun addProduct(name: String, price: Double, description: String, stockQuantity: Int, category: String, imageUrl: String = "") {
         viewModelScope.launch {
             try {
                 val newProduct = ProductModel(
@@ -63,7 +63,7 @@ class AdminViewModel @Inject constructor(
                     description = description,
                     stockQuantity = stockQuantity,
                     category = category,
-                    imageUrl = "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg"
+                    imageUrl = imageUrl.ifBlank { "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg" }
                 )
                 adminRepository.addProduct(newProduct)
                 _uiState.value = _uiState.value.copy(message = "Product added successfully!")
