@@ -7,6 +7,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.mkstore.ui.admin.AdminDashboardScreen
+import com.example.mkstore.ui.admin.AdminViewModel
 import com.example.mkstore.ui.auth.AuthViewModel
 import com.example.mkstore.ui.auth.LoginScreen
 import com.example.mkstore.ui.cart.CartScreen
@@ -64,8 +66,15 @@ fun NavGraph(navController: NavHostController) {
             LoginScreen(
                 viewModel = viewModel,
                 onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                    val uid = viewModel.sessionManager.getUserEmail()
+                    if (uid.contains("admin", ignoreCase = true)) {
+                        navController.navigate(Screen.AdminDashboard.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
                     }
                 }
             )
@@ -146,6 +155,19 @@ fun NavGraph(navController: NavHostController) {
         }
         composable(Screen.PaymentMethods.route) {
             PaymentMethodsScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(Screen.AdminDashboard.route) {
+            val adminViewModel: AdminViewModel = hiltViewModel()
+            val authViewModel: AuthViewModel = hiltViewModel()
+            AdminDashboardScreen(
+                viewModel = adminViewModel,
+                onSignOutClick = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.AdminDashboard.route) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
