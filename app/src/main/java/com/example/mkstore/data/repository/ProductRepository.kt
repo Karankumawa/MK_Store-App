@@ -1,0 +1,35 @@
+package com.example.mkstore.data.repository
+
+import com.example.mkstore.data.model.Product
+import com.example.mkstore.data.remote.SupabaseClientProvider
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class ProductRepository @Inject constructor() {
+
+    private val client = SupabaseClientProvider.client
+
+    suspend fun getProducts(): List<Product> = withContext(Dispatchers.IO) {
+        client.from("products")
+            .select()
+            .decodeList<Product>()
+    }
+
+    suspend fun insertProduct(product: Product) = withContext(Dispatchers.IO) {
+        client.from("products")
+            .insert(product)
+    }
+
+    suspend fun deleteProduct(id: Long) = withContext(Dispatchers.IO) {
+        client.from("products")
+            .delete {
+                filter {
+                    eq("id", id)
+                }
+            }
+    }
+}

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -45,6 +46,12 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.compose.material.icons.extended)
+
+    // Supabase, Ktor & KotlinX Serialization
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.kotlinx.serialization.json)
 
     // Firebase
     implementation(platform(libs.firebase.bom))
