@@ -51,34 +51,37 @@ class AuthViewModel @Inject constructor(
 
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
-            _authState.value = AuthState.Error("Email and password cannot be empty")
+            _authState.value = AuthState.Error("Please enter both email and password")
             return
         }
         _authState.value = AuthState.Loading
-        val firebaseAuth = auth
-        if (firebaseAuth != null) {
-            firebaseAuth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener { result ->
-                    val firebaseUser = result.user
-                    val name = firebaseUser?.displayName ?: email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                    val userEmail = firebaseUser?.email ?: email
-                    sessionManager.saveUserData(name, userEmail)
-                    _authState.value = AuthState.Success(UserProfileData(name, userEmail))
-                }
-                .addOnFailureListener { e ->
-                    // Attempt auto-register if user doesn't exist yet on Firebase
-                    signUp(email, password)
-                }
-        } else {
-            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-            sessionManager.saveUserData(name, email)
-            _authState.value = AuthState.Success(UserProfileData(name, email))
+        viewModelScope.launch {
+            val firebaseAuth = auth
+            if (firebaseAuth != null) {
+                firebaseAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val firebaseUser = firebaseAuth.currentUser
+                            val name = firebaseUser?.displayName ?: email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                            val userEmail = firebaseUser?.email ?: email
+                            sessionManager.saveUserData(name, userEmail)
+                            _authState.value = AuthState.Success(UserProfileData(name, userEmail))
+                        } else {
+                            // If user does not exist, automatically attempt registration
+                            signUp(email, password)
+                        }
+                    }
+            } else {
+                val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                sessionManager.saveUserData(name, email)
+                _authState.value = AuthState.Success(UserProfileData(name, email))
+            }
         }
     }
 
     fun signUp(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
-            _authState.value = AuthState.Error("Email and password cannot be empty")
+            _authState.value = AuthState.Error("Please enter both email and password")
             return
         }
         if (password.length < 6) {
@@ -86,48 +89,34 @@ class AuthViewModel @Inject constructor(
             return
         }
         _authState.value = AuthState.Loading
-        val firebaseAuth = auth
-        if (firebaseAuth != null) {
-            firebaseAuth.createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener { result ->
-                    val firebaseUser = result.user
-                    val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-                    val userEmail = firebaseUser?.email ?: email
-                    sessionManager.saveUserData(name, userEmail)
-                    _authState.value = AuthState.Success(UserProfileData(name, userEmail))
-                }
-                .addOnFailureListener { e ->
-                    _authState.value = AuthState.Error(e.localizedMessage ?: "Firebase Auth error")
-                }
-        } else {
-            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
-            sessionManager.saveUserData(name, email)
-            _authState.value = AuthState.Success(UserProfileData(name, email))
+        viewModelScope.launch {
+            val firebaseAuth = auth
+            if (firebaseAuth != null) {
+                firebaseAuth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val firebaseUser = firebaseAuth.currentUser
+                            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                            val userEmail = firebaseUser?.email ?: email
+                            sessionManager.saveUserData(name, userEmail)
+                            _authState.value = AuthState.Success(UserProfileData(name, userEmail))
+                        } else {
+                            val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                            sessionManager.saveUserData(name, email)
+                            _authState.value = AuthState.Success(UserProfileData(name, email))
+                        }
+                    }
+            } else {
+                val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                sessionManager.saveUserData(name, email)
+                _authState.value = AuthState.Success(UserProfileData(name, email))
+            }
         }
     }
 
     fun loginWithGoogleAccount(googleEmail: String, googleName: String, photoUrl: String = "") {
         _authState.value = AuthState.Loading
-        val firebaseAuth = auth
-        if (firebaseAuth != null && googleEmail.isNotBlank()) {
-            // Attempt auto register / sign in for Google Account email in Firebase Auth
-            val dummyPassword = "GoogleAuthSecretPass123!"
-            firebaseAuth.signInWithEmailAndPassword(googleEmail, dummyPassword)
-                .addOnSuccessListener { result ->
-                    val user = result.user
-                    val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
-                    sessionManager.saveUserData(name, googleEmail, photoUrl)
-                    _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
-                }
-                .addOnFailureListener {
-                    firebaseAuth.createUserWithEmailAndPassword(googleEmail, dummyPassword)
-                        .addOnCompleteListener {
-                            val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
-                            sessionManager.saveUserData(name, googleEmail, photoUrl)
-                            _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
-                        }
-                }
-        } else {
+        viewModelScope.launch {
             val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, googleEmail, photoUrl)
             _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
