@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
-data class ProfileUiState(
+data class ProfileEditUiState(
     val name: String = "John Doe",
     val email: String = "john.doe@example.com",
     val phone: String = "+1 234 567 890",
@@ -21,8 +21,8 @@ class ProfileViewModel @Inject constructor(
     val sessionManager: SessionManager
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
-    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ProfileEditUiState())
+    val uiState: StateFlow<ProfileEditUiState> = _uiState.asStateFlow()
 
     fun updateName(name: String) {
         _uiState.value = _uiState.value.copy(name = name)
