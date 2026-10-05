@@ -12,7 +12,9 @@ data class SupabaseUserProfile(
     val bio: String? = null,
     val role: String = "user",
     @SerialName("is_blocked")
-    val isBlocked: Boolean = false
+    val isBlocked: Boolean = false,
+    @SerialName("password_hash")
+    val passwordHash: String? = null
 )
 
 @Serializable

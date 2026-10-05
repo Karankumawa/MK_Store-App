@@ -75,7 +75,6 @@ class AuthViewModel @Inject constructor(
         _authState.value = AuthState.Loading
         viewModelScope.launch {
             val trimmedEmail = email.trim()
-            val name = trimmedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
 
             // Check for direct Admin login credentials
             if (trimmedEmail.equals("admin@mkstore.com", ignoreCase = true) && password.trim() == "admin@123") {
@@ -86,8 +85,21 @@ class AuthViewModel @Inject constructor(
                 return@launch
             }
 
+            // Verify if user is registered in Supabase database
+            val existingUser = userRepository.getUserProfileByEmail(trimmedEmail)
+            if (existingUser == null) {
+                _authState.value = AuthState.Error("Account not found in database. Please click 'Sign Up' to register.")
+                return@launch
+            }
+
+            if (existingUser.isBlocked) {
+                _authState.value = AuthState.Error("Your account has been blocked by Admin.")
+                return@launch
+            }
+
+            val name = existingUser.displayName?.ifBlank { null }
+                ?: trimmedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, trimmedEmail)
-            saveUserToSupabase(trimmedEmail, name)
             _authState.value = AuthState.Success(UserProfileData(name, trimmedEmail))
         }
     }
@@ -104,6 +116,12 @@ class AuthViewModel @Inject constructor(
         _authState.value = AuthState.Loading
         viewModelScope.launch {
             val trimmedEmail = email.trim()
+            val existingUser = userRepository.getUserProfileByEmail(trimmedEmail)
+            if (existingUser != null) {
+                _authState.value = AuthState.Error("Account with this email already exists in database. Please Sign In.")
+                return@launch
+            }
+
             val name = trimmedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, trimmedEmail)
             saveUserToSupabase(trimmedEmail, name)

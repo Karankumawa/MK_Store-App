@@ -46,6 +46,10 @@ class UserRepository @Inject constructor(
         } catch (e: Exception) { }
     }
 
+    suspend fun getUserProfileByEmail(email: String): SupabaseUserProfile? {
+        return supabaseRepository.getUserProfileByEmail(email)
+    }
+
     fun observeProfile(uid: String): Flow<UserProfile?> = callbackFlow {
         val db = firestore
         if (db == null) {

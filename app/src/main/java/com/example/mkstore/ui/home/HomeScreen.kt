@@ -66,7 +66,15 @@ fun HomeScreen(
                         Icon(Icons.Default.Person, contentDescription = "Profile")
                     }
                     IconButton(onClick = onCartClick) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
+                        if (state.cartCount > 0) {
+                            BadgedBox(
+                                badge = { Badge { Text("${state.cartCount}") } }
+                            ) {
+                                Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
+                            }
+                        } else {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
+                        }
                     }
                 }
             )

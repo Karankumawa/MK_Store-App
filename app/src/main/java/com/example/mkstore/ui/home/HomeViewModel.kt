@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,6 +22,7 @@ data class HomeUiState(
     val selectedCategory: String? = null,
     val searchQuery: String = "",
     val favoriteIds: Set<Int> = emptySet(),
+    val cartCount: Int = 0,
     val error: String? = null
 )
 
@@ -36,6 +38,16 @@ class HomeViewModel @Inject constructor(
         loadBanners()
         loadCategories()
         loadProducts()
+        observeCartCount()
+    }
+
+    private fun observeCartCount() {
+        viewModelScope.launch {
+            repository.cartItems.collectLatest { list ->
+                val totalQty = list.sumOf { it.quantity }
+                _uiState.value = _uiState.value.copy(cartCount = totalQty)
+            }
+        }
     }
 
     fun loadBanners() {

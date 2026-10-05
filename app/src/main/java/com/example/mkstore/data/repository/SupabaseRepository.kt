@@ -30,6 +30,18 @@ class SupabaseRepository @Inject constructor() {
         }
     }
 
+    suspend fun getUserProfileByEmail(email: String): SupabaseUserProfile? = withContext(Dispatchers.IO) {
+        try {
+            client.from("user_profiles")
+                .select {
+                    filter { eq("email", email) }
+                }
+                .decodeSingleOrNull<SupabaseUserProfile>()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     // 2. Cart Items Table
     suspend fun getCartItems(userId: String): List<SupabaseCartItem> = withContext(Dispatchers.IO) {
         try {
