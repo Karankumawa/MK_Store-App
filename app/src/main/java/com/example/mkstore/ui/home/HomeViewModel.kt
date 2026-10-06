@@ -2,14 +2,12 @@ package com.example.mkstore.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mkstore.data.local.CartEntity
 import com.example.mkstore.data.model.BannerItem
 import com.example.mkstore.data.remote.dto.ProductDto
 import com.example.mkstore.data.repository.StoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -34,6 +32,8 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    val cartItems: Flow<List<CartEntity>> = repository.cartItems
+
     init {
         loadBanners()
         loadCategories()
@@ -47,6 +47,22 @@ class HomeViewModel @Inject constructor(
                 val totalQty = list.sumOf { it.quantity }
                 _uiState.value = _uiState.value.copy(cartCount = totalQty)
             }
+        }
+    }
+
+    fun updateCartQuantity(item: CartEntity, newQuantity: Int) {
+        viewModelScope.launch {
+            if (newQuantity > 0) {
+                repository.addToCart(item.copy(quantity = newQuantity))
+            } else {
+                repository.removeFromCart(item.id)
+            }
+        }
+    }
+
+    fun removeFromCart(productId: Int) {
+        viewModelScope.launch {
+            repository.removeFromCart(productId)
         }
     }
 

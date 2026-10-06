@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.mkstore.data.model.BannerItem
 import com.example.mkstore.data.remote.dto.ProductDto
+import com.example.mkstore.ui.cart.CartDrawerSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +48,8 @@ fun HomeScreen(
     onProfileClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    var showCartSheet by remember { mutableStateOf(false) }
+
     val displayBanners = remember(state.banners) {
         if (state.banners.isNotEmpty()) state.banners
         else listOf(
@@ -57,6 +60,20 @@ fun HomeScreen(
     }
     val bannerPagerState = rememberPagerState(pageCount = { displayBanners.size })
 
+    if (showCartSheet) {
+        val cartList by viewModel.cartItems.collectAsState(initial = emptyList())
+        val totalAmount = cartList.sumOf { it.price * it.quantity }
+        CartDrawerSheet(
+            cartItems = cartList,
+            totalPrice = totalAmount,
+            onDismiss = { showCartSheet = false },
+            onIncrement = { item -> viewModel.updateCartQuantity(item, item.quantity + 1) },
+            onDecrement = { item -> viewModel.updateCartQuantity(item, item.quantity - 1) },
+            onRemove = { id -> viewModel.removeFromCart(id) },
+            onCheckoutClick = onCartClick
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,7 +82,7 @@ fun HomeScreen(
                     IconButton(onClick = onProfileClick) {
                         Icon(Icons.Default.Person, contentDescription = "Profile")
                     }
-                    IconButton(onClick = onCartClick) {
+                    IconButton(onClick = { showCartSheet = true }) {
                         if (state.cartCount > 0) {
                             BadgedBox(
                                 badge = { Badge { Text("${state.cartCount}") } }
