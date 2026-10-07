@@ -39,6 +39,15 @@ class HomeViewModel @Inject constructor(
         loadCategories()
         loadProducts()
         observeCartCount()
+        observeFavorites()
+    }
+
+    private fun observeFavorites() {
+        viewModelScope.launch {
+            repository.favoriteIds.collectLatest { favSet ->
+                _uiState.value = _uiState.value.copy(favoriteIds = favSet)
+            }
+        }
     }
 
     private fun observeCartCount() {
@@ -112,13 +121,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun toggleFavorite(productId: Int) {
-        val currentFavs = _uiState.value.favoriteIds.toMutableSet()
-        if (currentFavs.contains(productId)) {
-            currentFavs.remove(productId)
-        } else {
-            currentFavs.add(productId)
-        }
-        _uiState.value = _uiState.value.copy(favoriteIds = currentFavs)
+        repository.toggleFavorite(productId)
     }
 
     private fun filterProductsList(products: List<ProductDto>, query: String): List<ProductDto> {

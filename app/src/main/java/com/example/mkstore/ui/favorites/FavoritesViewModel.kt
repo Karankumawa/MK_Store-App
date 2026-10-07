@@ -28,18 +28,26 @@ class FavoritesViewModel @Inject constructor(
     val uiState: StateFlow<FavoritesUiState> = _uiState.asStateFlow()
 
     init {
-        loadFavoriteProducts()
+        observeFavorites()
         observeCartCount()
+    }
+
+    private fun observeFavorites() {
+        viewModelScope.launch {
+            repository.favoriteIds.collectLatest {
+                loadFavoriteProducts()
+            }
+        }
     }
 
     fun loadFavoriteProducts() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val allProducts = repository.getProducts()
+                val favProducts = repository.getFavoriteProducts()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    favoriteProducts = allProducts.take(3)
+                    favoriteProducts = favProducts
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false)
@@ -70,9 +78,6 @@ class FavoritesViewModel @Inject constructor(
     }
 
     fun removeFavorite(productId: Int) {
-        viewModelScope.launch {
-            val currentList = _uiState.value.favoriteProducts.filter { it.id != productId }
-            _uiState.value = _uiState.value.copy(favoriteProducts = currentList)
-        }
+        repository.toggleFavorite(productId)
     }
 }

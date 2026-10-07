@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.mkstore.ui.auth.AuthState
 import com.example.mkstore.ui.auth.AuthViewModel
+import com.example.mkstore.ui.navigation.AppBottomNavBar
+import com.example.mkstore.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,7 +27,8 @@ fun ProfileScreen(
     onOrdersClick: () -> Unit,
     onAddressesClick: () -> Unit,
     onPaymentClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     val authState by authViewModel.authState.collectAsState()
     val isLoggedIn = authState is AuthState.Success
@@ -38,7 +41,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Profile") },
+                title = { Text("My Profile", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -51,6 +54,12 @@ fun ProfileScreen(
                         }
                     }
                 }
+            )
+        },
+        bottomBar = {
+            AppBottomNavBar(
+                currentRoute = Screen.Profile.route,
+                onNavigate = onNavigate
             )
         }
     ) { paddingValues ->

@@ -288,43 +288,187 @@ fun HomeScreen(
                 }
             }
 
-            // 6. Footer
+            // 6. Modern E-Commerce Footer
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                HomeFooterSection()
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeFooterSection() {
+    var emailInput by remember { mutableStateOf("") }
+    var isSubscribed by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        HorizontalDivider()
+
+        // 1. Why Shop With Us? Value Cards Grid
+        Text(
+            text = "Why Shop With MK Store?",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ValueFeatureCard(
+                icon = "🚚",
+                title = "Fast Express Delivery",
+                subtitle = "Free shipping on $50+",
+                modifier = Modifier.weight(1f)
+            )
+            ValueFeatureCard(
+                icon = "🛡️",
+                title = "100% Authentic",
+                subtitle = "Genuine warranty",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ValueFeatureCard(
+                icon = "💳",
+                title = "Secure Payments",
+                subtitle = "UPI, Cards & COD",
+                modifier = Modifier.weight(1f)
+            )
+            ValueFeatureCard(
+                icon = "🔄",
+                title = "7 Days Return",
+                subtitle = "Hassle-free refunds",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // 2. Newsletter Signup Box
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Stay Updated on VIP Offers ⚡",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Subscribe to receive instant deal alerts and promo codes.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                )
+                if (isSubscribed) {
+                    Surface(
+                        color = Color(0xFF4CAF50),
+                        shape = MaterialTheme.shapes.small
                     ) {
                         Text(
-                            text = "MK Store - Fast & Secure E-Commerce App",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "⚡ Instant Shipping • 🛡️ Buyer Protection • 💬 24/7 Support",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "© 2026 MK Store. All rights reserved.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            textAlign = TextAlign.Center
+                            text = "✓ Subscribed! Check your inbox for deals.",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
                         )
                     }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = emailInput,
+                            onValueChange = { emailInput = it },
+                            placeholder = { Text("Enter your email") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
+                        )
+                        Button(
+                            onClick = {
+                                if (emailInput.contains("@")) {
+                                    isSubscribed = true
+                                }
+                            }
+                        ) {
+                            Text("Join")
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+
+        // 3. Customer Service & Support Information
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "MK Store - Official E-Commerce App",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "💬 24/7 Support: support@mkstore.com | 📞 +91 1800-MK-STORE",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Accepted: UPI • Google Pay • Visa • Mastercard • Cash on Delivery",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "© 2026 MK Store E-Commerce. All rights reserved.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ValueFeatureCard(
+    icon: String,
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(text = icon, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
         }
     }
 }

@@ -9,6 +9,9 @@ import com.example.mkstore.data.remote.ApiService
 import com.example.mkstore.data.remote.dto.ProductDto
 import com.example.mkstore.data.remote.dto.RatingDto
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 class StoreRepository @Inject constructor(
@@ -77,6 +80,27 @@ class StoreRepository @Inject constructor(
 
     // Local Cart & Supabase Sync
     val cartItems: Flow<List<CartEntity>> = cartDao.getCartItems()
+
+    // Favorites
+    private val _favoriteIds = MutableStateFlow<Set<Int>>(emptySet())
+    val favoriteIds: StateFlow<Set<Int>> = _favoriteIds.asStateFlow()
+
+    fun toggleFavorite(productId: Int) {
+        val current = _favoriteIds.value.toMutableSet()
+        if (current.contains(productId)) {
+            current.remove(productId)
+        } else {
+            current.add(productId)
+        }
+        _favoriteIds.value = current
+    }
+
+    suspend fun getFavoriteProducts(): List<ProductDto> {
+        val ids = _favoriteIds.value
+        if (ids.isEmpty()) return emptyList()
+        val all = getProducts()
+        return all.filter { ids.contains(it.id) }
+    }
 
     suspend fun addToCart(item: CartEntity, userId: String = "guest_user") {
         cartDao.insertOrUpdateCartItem(item)

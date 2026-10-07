@@ -18,20 +18,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.mkstore.data.local.CartEntity
+import com.example.mkstore.ui.navigation.AppBottomNavBar
+import com.example.mkstore.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     viewModel: CartViewModel,
     onBackClick: () -> Unit,
-    onCheckoutClick: (Boolean) -> Unit
+    onCheckoutClick: (Boolean) -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Cart") },
+                title = { Text("My Cart (${state.cartItems.sumOf { it.quantity }})", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -40,37 +43,44 @@ fun CartScreen(
             )
         },
         bottomBar = {
-            if (state.cartItems.isNotEmpty()) {
-                Surface(
-                    tonalElevation = 8.dp,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if (state.cartItems.isNotEmpty()) {
+                    Surface(
+                        tonalElevation = 8.dp,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            Text(text = "Total:", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                text = "$${String.format("%.2f", state.totalPrice)}",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(
-                            onClick = { onCheckoutClick(viewModel.sessionManager.isLoggedIn()) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Proceed to Checkout")
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = "Total:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                                Text(
+                                    text = "$${String.format("%.2f", state.totalPrice)}",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = { onCheckoutClick(viewModel.sessionManager.isLoggedIn()) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Proceed to Checkout ➔", fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
+                AppBottomNavBar(
+                    currentRoute = Screen.Cart.route,
+                    cartCount = state.cartItems.sumOf { it.quantity },
+                    onNavigate = onNavigate
+                )
             }
         }
     ) { paddingValues ->
@@ -81,7 +91,7 @@ fun CartScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "Your cart is empty", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Your cart is empty 🛍️", style = MaterialTheme.typography.bodyLarge)
             }
         } else {
             LazyColumn(
