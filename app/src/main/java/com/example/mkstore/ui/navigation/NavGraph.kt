@@ -94,6 +94,25 @@ fun NavGraph(navController: NavHostController) {
                 },
                 onProfileClick = {
                     navController.navigate(Screen.Profile.route)
+                },
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        composable(Screen.Favorites.route) {
+            val viewModel: com.example.mkstore.ui.favorites.FavoritesViewModel = hiltViewModel()
+            com.example.mkstore.ui.favorites.FavoritesScreen(
+                viewModel = viewModel,
+                onProductClick = { productId ->
+                    navController.navigate(Screen.ProductDetail.createRoute(productId))
+                },
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }

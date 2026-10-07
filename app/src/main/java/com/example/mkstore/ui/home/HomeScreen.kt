@@ -45,7 +45,8 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onProductClick: (Int) -> Unit,
     onCartClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     var showCartSheet by remember { mutableStateOf(false) }
@@ -94,6 +95,13 @@ fun HomeScreen(
                         }
                     }
                 }
+            )
+        },
+        bottomBar = {
+            com.example.mkstore.ui.navigation.AppBottomNavBar(
+                currentRoute = com.example.mkstore.ui.navigation.Screen.Home.route,
+                cartCount = state.cartCount,
+                onNavigate = onNavigate
             )
         }
     ) { paddingValues ->
