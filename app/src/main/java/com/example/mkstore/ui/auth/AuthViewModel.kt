@@ -56,12 +56,13 @@ class AuthViewModel @Inject constructor(
     private fun saveUserToSupabase(email: String, displayName: String) {
         viewModelScope.launch {
             try {
+                val normalizedEmail = email.trim().lowercase()
                 val profile = UserProfile(
-                    uid = email,
-                    email = email,
+                    uid = normalizedEmail,
+                    email = normalizedEmail,
                     displayName = displayName
                 )
-                val role = if (email.equals("admin@mkstore.com", ignoreCase = true) || email.contains("admin", ignoreCase = true)) "admin" else "user"
+                val role = if (normalizedEmail == "admin@mkstore.com" || normalizedEmail.contains("admin")) "admin" else "user"
                 userRepository.saveOrUpdateProfile(profile, role = role)
             } catch (e: Exception) { }
         }
@@ -74,33 +75,33 @@ class AuthViewModel @Inject constructor(
         }
         _authState.value = AuthState.Loading
         viewModelScope.launch {
-            val trimmedEmail = email.trim()
+            val normalizedEmail = email.trim().lowercase()
 
             // Check for direct Admin login credentials
-            if (trimmedEmail.equals("admin@mkstore.com", ignoreCase = true) && password.trim() == "admin@123") {
+            if (normalizedEmail == "admin@mkstore.com" && password.trim() == "admin@123") {
                 val adminName = "Admin User"
-                sessionManager.saveUserData(adminName, trimmedEmail)
-                saveUserToSupabase(trimmedEmail, adminName)
-                _authState.value = AuthState.Success(UserProfileData(adminName, trimmedEmail))
+                sessionManager.saveUserData(adminName, normalizedEmail)
+                saveUserToSupabase(normalizedEmail, adminName)
+                _authState.value = AuthState.Success(UserProfileData(adminName, normalizedEmail))
                 return@launch
             }
 
-            // Verify if user is registered in Supabase database
-            val existingUser = userRepository.getUserProfileByEmail(trimmedEmail)
+            // Verify if user profile exists in Supabase database
+            val existingUser = userRepository.getUserProfileByEmail(normalizedEmail)
             if (existingUser == null) {
-                _authState.value = AuthState.Error("Account not found in database. Please click 'Sign Up' to register.")
+                _authState.value = AuthState.Error("Account for '$normalizedEmail' not found in database. Re-creation is blocked. Please click 'Sign Up' first.")
                 return@launch
             }
 
             if (existingUser.isBlocked) {
-                _authState.value = AuthState.Error("Your account has been blocked by Admin.")
+                _authState.value = AuthState.Error("Your account ($normalizedEmail) has been blocked by Admin.")
                 return@launch
             }
 
             val name = existingUser.displayName?.ifBlank { null }
-                ?: trimmedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
-            sessionManager.saveUserData(name, trimmedEmail)
-            _authState.value = AuthState.Success(UserProfileData(name, trimmedEmail))
+                ?: normalizedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+            sessionManager.saveUserData(name, normalizedEmail)
+            _authState.value = AuthState.Success(UserProfileData(name, normalizedEmail))
         }
     }
 
@@ -115,17 +116,20 @@ class AuthViewModel @Inject constructor(
         }
         _authState.value = AuthState.Loading
         viewModelScope.launch {
-            val trimmedEmail = email.trim()
-            val existingUser = userRepository.getUserProfileByEmail(trimmedEmail)
+            val normalizedEmail = email.trim().lowercase()
+
+            // Check if profile already exists in Supabase database
+            val existingUser = userRepository.getUserProfileByEmail(normalizedEmail)
             if (existingUser != null) {
-                _authState.value = AuthState.Error("Account with this email already exists in database. Please Sign In.")
+                _authState.value = AuthState.Error("Account for '$normalizedEmail' already exists in database. Duplicate profile creation is blocked. Please Sign In.")
                 return@launch
             }
 
-            val name = trimmedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
-            sessionManager.saveUserData(name, trimmedEmail)
-            saveUserToSupabase(trimmedEmail, name)
-            _authState.value = AuthState.Success(UserProfileData(name, trimmedEmail))
+            // Create new unique user profile
+            val name = normalizedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
+            sessionManager.saveUserData(name, normalizedEmail)
+            saveUserToSupabase(normalizedEmail, name)
+            _authState.value = AuthState.Success(UserProfileData(name, normalizedEmail))
         }
     }
 

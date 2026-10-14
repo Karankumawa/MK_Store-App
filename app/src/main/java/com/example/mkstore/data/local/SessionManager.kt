@@ -29,7 +29,11 @@ class SessionManager @Inject constructor(
     }
 
     fun getUserEmail(): String {
-        return prefs.getString(KEY_USER_EMAIL, "") ?: ""
+        return prefs.getString(KEY_USER_EMAIL, "")?.trim()?.lowercase() ?: ""
+    }
+
+    fun getUserId(): String {
+        return getUserEmail()
     }
 
     fun getUserName(): String {
