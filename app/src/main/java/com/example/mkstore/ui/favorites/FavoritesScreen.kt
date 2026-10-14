@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -35,7 +36,7 @@ fun FavoritesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Wishlist / Favorites ❤️", fontWeight = FontWeight.Bold) }
+                title = { Text("My Wishlist (${state.favoriteProducts.size}) ❤️", fontWeight = FontWeight.Bold) }
             )
         },
         bottomBar = {
@@ -56,7 +57,14 @@ fun FavoritesScreen(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (state.favoriteProducts.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No saved favorites yet ❤️. Tap heart on products to save them!")
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Icon(Icons.Default.Favorite, contentDescription = "Empty Wishlist", modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
+                        Text(text = "No saved favorites yet ❤️", style = MaterialTheme.typography.titleMedium)
+                        Text(text = "Tap the heart button on products to save them here.", style = MaterialTheme.typography.bodySmall)
+                        Button(onClick = { onNavigate(Screen.Home.route) }) {
+                            Text("Explore Products ➔")
+                        }
+                    }
                 }
             } else {
                 LazyVerticalGrid(
@@ -65,7 +73,7 @@ fun FavoritesScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(state.favoriteProducts) { product ->
+                    items(state.favoriteProducts, key = { it.id }) { product ->
                         FavoriteProductCard(
                             product = product,
                             onClick = { onProductClick(product.id) },
