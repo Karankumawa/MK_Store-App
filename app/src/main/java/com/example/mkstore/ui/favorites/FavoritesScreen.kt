@@ -126,7 +126,7 @@ fun FavoriteProductCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "$${product.price}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text(text = "₹${product.price}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 IconButton(onClick = onAddToCart) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = "Add to Cart", tint = MaterialTheme.colorScheme.primary)
                 }

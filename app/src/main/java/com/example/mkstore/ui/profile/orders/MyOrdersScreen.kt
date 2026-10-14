@@ -85,7 +85,7 @@ fun MyOrdersScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(text = "Total Amount:", style = MaterialTheme.typography.bodyMedium)
-                                Text(text = "$${String.format("%.2f", order.totalAmount)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                Text(text = "₹${String.format("%.2f", order.totalAmount)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }

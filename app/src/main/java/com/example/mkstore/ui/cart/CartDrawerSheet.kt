@@ -107,7 +107,7 @@ fun CartDrawerSheet(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "$${String.format("%.2f", item.price)}",
+                                        text = "₹${String.format("%.2f", item.price)}",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold
@@ -152,7 +152,7 @@ fun CartDrawerSheet(
                 ) {
                     Text("Total Subtotal:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                     Text(
-                        text = "$${String.format("%.2f", totalPrice)}",
+                        text = "₹${String.format("%.2f", totalPrice)}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

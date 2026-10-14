@@ -46,7 +46,7 @@ fun AdminDashboardScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = newName, onValueChange = { newName = it }, label = { Text("Product Name") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = newPrice, onValueChange = { newPrice = it }, label = { Text("Price ($)") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = newPrice, onValueChange = { newPrice = it }, label = { Text("Price (₹)") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = newStock, onValueChange = { newStock = it }, label = { Text("Stock Quantity") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = newCategory, onValueChange = { newCategory = it }, label = { Text("Category") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = newImageUrl, onValueChange = { newImageUrl = it }, label = { Text("Image URL") }, modifier = Modifier.fillMaxWidth())
@@ -234,7 +234,7 @@ fun AdminProductsTab(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(text = product.name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                            Text(text = "Price: $${product.price} | Stock: ${product.stockQuantity}", style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "Price: ₹${product.price} | Stock: ${product.stockQuantity}", style = MaterialTheme.typography.bodyMedium)
                             Text(text = "Category: ${product.category}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                         }
                         IconButton(onClick = { onDelete(product.id) }) {
@@ -274,7 +274,7 @@ fun AdminOrdersTab(
                             )
                         }
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Total: $${order.totalAmount}", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = "Total: ₹${order.totalAmount}", style = MaterialTheme.typography.bodyMedium)
                         Text(text = "Address: ${order.shippingAddress}", style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -13,11 +13,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -54,9 +56,9 @@ fun HomeScreen(
     val displayBanners = remember(state.banners) {
         if (state.banners.isNotEmpty()) state.banners
         else listOf(
-            BannerItem(1, "Summer Mega Sale ⚡", "Get up to 50% off on top electronics & fashion"),
-            BannerItem(2, "New Arrival Collection 🛍️", "Check out our latest premium collection"),
-            BannerItem(3, "Free Express Shipping 🚚", "On all orders above $50 today")
+            BannerItem(1, "Mega Indian Festive Sale ⚡", "Get up to 60% off on top electronics & fashion"),
+            BannerItem(2, "New Arrival Collection 🛍️", "Exclusive premium quality products for you"),
+            BannerItem(3, "Free Express Delivery 🚚", "Free shipping on all orders above ₹499")
         )
     }
     val bannerPagerState = rememberPagerState(pageCount = { displayBanners.size })
@@ -77,25 +79,59 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("MK Store", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = onProfileClick) {
-                        Icon(Icons.Default.Person, contentDescription = "Profile")
+            Surface(
+                tonalElevation = 3.dp,
+                shadowElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "MK STORE 🛍️",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = "India's Favorite Shopping Destination",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
                     }
-                    IconButton(onClick = { showCartSheet = true }) {
-                        if (state.cartCount > 0) {
-                            BadgedBox(
-                                badge = { Badge { Text("${state.cartCount}") } }
-                            ) {
-                                Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
-                            }
-                        } else {
-                            Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
+
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.FlashOn,
+                                contentDescription = "Deals",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "LIVE DEALS",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         }
                     }
                 }
-            )
+            }
         },
         bottomBar = {
             com.example.mkstore.ui.navigation.AppBottomNavBar(
@@ -119,8 +155,8 @@ fun HomeScreen(
                     value = state.searchQuery,
                     onValueChange = { viewModel.onSearchQueryChanged(it) },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Search products, categories...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    placeholder = { Text("Search electronics, clothing, deals in ₹...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.primary) },
                     trailingIcon = {
                         if (state.searchQuery.isNotEmpty()) {
                             IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
@@ -128,12 +164,12 @@ fun HomeScreen(
                             }
                         }
                     },
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true
                 )
             }
 
-            // 2. Promotional Sliding Banner (Animated)
+            // 2. Promotional Sliding Banner (Gradient Modern Card)
             if (state.searchQuery.isEmpty()) {
                 item {
                     Column {
@@ -144,30 +180,49 @@ fun HomeScreen(
                                 .height(160.dp)
                         ) { page ->
                             val currentBanner = displayBanners.getOrNull(page)
-                            val bannerTitle = currentBanner?.title ?: "Summer Mega Sale ⚡"
-                            val bannerSubtitle = currentBanner?.subtitle ?: "Get up to 50% off on top electronics & fashion"
-                            Card(
-                                modifier = Modifier.fillMaxSize(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            val bannerTitle = currentBanner?.title ?: "Mega Indian Festive Sale ⚡"
+                            val bannerSubtitle = currentBanner?.subtitle ?: "Get up to 60% off on top electronics & fashion"
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            colors = listOf(
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.tertiary
+                                            )
+                                        )
+                                    )
+                                    .padding(20.dp),
+                                contentAlignment = Alignment.CenterStart
                             ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(20.dp),
-                                    verticalArrangement = Arrangement.Center
-                                ) {
+                                Column(verticalArrangement = Arrangement.Center) {
+                                    Surface(
+                                        color = Color.White.copy(alpha = 0.25f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text(
+                                            text = "SPECIAL OFFER",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = bannerTitle,
                                         style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = bannerSubtitle,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.9f)
                                     )
                                 }
                             }
@@ -177,12 +232,12 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            repeat(3) { iteration ->
+                            repeat(displayBanners.size) { iteration ->
                                 val color = if (bannerPagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                                 Box(
                                     modifier = Modifier
                                         .padding(3.dp)
-                                        .size(7.dp)
+                                        .size(if (bannerPagerState.currentPage == iteration) 12.dp else 6.dp, 6.dp)
                                         .clip(CircleShape)
                                         .background(color)
                                 )
@@ -192,9 +247,13 @@ fun HomeScreen(
                 }
             }
 
-            // 3. Categories Row
+            // 3. Category Chips Row with Badges
             item {
-                Text(text = "Categories", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Explore Categories",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -203,23 +262,47 @@ fun HomeScreen(
                         FilterChip(
                             selected = state.selectedCategory == null,
                             onClick = { viewModel.loadProducts(null) },
-                            label = { Text("All") }
+                            label = { Text("🔥 All Deals") }
                         )
                     }
                     items(state.categories) { category ->
+                        val iconLabel = when {
+                            category.contains("electron", ignoreCase = true) -> "📱 " + category.replaceFirstChar { it.uppercase() }
+                            category.contains("jewel", ignoreCase = true) -> "💎 " + category.replaceFirstChar { it.uppercase() }
+                            category.contains("men", ignoreCase = true) -> "👔 " + category.replaceFirstChar { it.uppercase() }
+                            category.contains("women", ignoreCase = true) -> "👗 " + category.replaceFirstChar { it.uppercase() }
+                            else -> "🛍️ " + category.replaceFirstChar { it.uppercase() }
+                        }
                         FilterChip(
                             selected = state.selectedCategory == category,
                             onClick = { viewModel.loadProducts(category) },
-                            label = { Text(category.replaceFirstChar { it.uppercase() }) }
+                            label = { Text(iconLabel) }
                         )
                     }
                 }
             }
 
-            // 4. Featured Deals Row (Shown when no active search)
+            // 4. Flash Deals Horizontal Row
             if (state.searchQuery.isEmpty() && state.filteredProducts.isNotEmpty()) {
                 item {
-                    Text(text = "Featured Deals", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "⚡ Flash Deals of the Day",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "View All ➔",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable { viewModel.loadProducts(null) }
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -234,7 +317,7 @@ fun HomeScreen(
             // 5. Products Header
             item {
                 Text(
-                    text = if (state.searchQuery.isNotBlank()) "Search Results (${state.filteredProducts.size})" else "All Products",
+                    text = if (state.searchQuery.isNotBlank()) "Search Results (${state.filteredProducts.size})" else "Trending Products",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -265,7 +348,7 @@ fun HomeScreen(
                 }
             }
 
-            // Animated Grid Rows of 2
+            // 2-Column Responsive Card Grid
             items(state.filteredProducts.chunked(2)) { rowProducts ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -288,7 +371,7 @@ fun HomeScreen(
                 }
             }
 
-            // 6. Modern E-Commerce Footer
+            // 6. E-Commerce Value Footer
             item {
                 HomeFooterSection()
             }
@@ -298,9 +381,6 @@ fun HomeScreen(
 
 @Composable
 fun HomeFooterSection() {
-    var emailInput by remember { mutableStateOf("") }
-    var isSubscribed by remember { mutableStateOf(false) }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -309,7 +389,6 @@ fun HomeFooterSection() {
     ) {
         HorizontalDivider()
 
-        // 1. Why Shop With Us? Value Cards Grid
         Text(
             text = "Why Shop With MK Store?",
             style = MaterialTheme.typography.titleMedium,
@@ -323,13 +402,13 @@ fun HomeFooterSection() {
             ValueFeatureCard(
                 icon = "🚚",
                 title = "Fast Express Delivery",
-                subtitle = "Free shipping on $50+",
+                subtitle = "Free shipping on ₹499+",
                 modifier = Modifier.weight(1f)
             )
             ValueFeatureCard(
                 icon = "🛡️",
                 title = "100% Authentic",
-                subtitle = "Genuine warranty",
+                subtitle = "Genuine brand warranty",
                 modifier = Modifier.weight(1f)
             )
         }
@@ -341,7 +420,7 @@ fun HomeFooterSection() {
             ValueFeatureCard(
                 icon = "💳",
                 title = "Secure Payments",
-                subtitle = "UPI, Cards & COD",
+                subtitle = "UPI, GPay, Cards & COD",
                 modifier = Modifier.weight(1f)
             )
             ValueFeatureCard(
@@ -352,67 +431,6 @@ fun HomeFooterSection() {
             )
         }
 
-        // 2. Newsletter Signup Box
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Stay Updated on VIP Offers ⚡",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = "Subscribe to receive instant deal alerts and promo codes.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
-                )
-                if (isSubscribed) {
-                    Surface(
-                        color = Color(0xFF4CAF50),
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Text(
-                            text = "✓ Subscribed! Check your inbox for deals.",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = emailInput,
-                            onValueChange = { emailInput = it },
-                            placeholder = { Text("Enter your email") },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true
-                        )
-                        Button(
-                            onClick = {
-                                if (emailInput.contains("@")) {
-                                    isSubscribed = true
-                                }
-                            }
-                        ) {
-                            Text("Join")
-                        }
-                    }
-                }
-            }
-        }
-
-        // 3. Customer Service & Support Information
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -423,19 +441,19 @@ fun HomeFooterSection() {
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = "MK Store - Official E-Commerce App",
+                    text = "MK Store - India's Online Shopping Destination",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "💬 24/7 Support: support@mkstore.com | 📞 +91 1800-MK-STORE",
+                    text = "💬 24/7 Customer Care: support@mkstore.com | 📞 +91 1800-MK-STORE",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Accepted: UPI • Google Pay • Visa • Mastercard • Cash on Delivery",
+                    text = "Accepted: UPI • PhonePe • Google Pay • Visa • Mastercard • COD",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
@@ -487,15 +505,31 @@ fun FeaturedDealCard(
         Column(
             modifier = Modifier.padding(10.dp)
         ) {
-            AsyncImage(
-                model = product.image,
-                contentDescription = product.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(90.dp)
-                    .clip(MaterialTheme.shapes.small),
-                contentScale = ContentScale.Fit
-            )
+            Box {
+                AsyncImage(
+                    model = product.image,
+                    contentDescription = product.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(90.dp)
+                        .clip(MaterialTheme.shapes.small),
+                    contentScale = ContentScale.Fit
+                )
+                Surface(
+                    color = Color.Red,
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.align(Alignment.TopStart)
+                ) {
+                    Text(
+                        text = "15% OFF",
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = product.title,
@@ -506,7 +540,7 @@ fun FeaturedDealCard(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "$${product.price}",
+                text = "₹${product.price}",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
@@ -562,7 +596,7 @@ fun ProductItemCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "$${product.price}",
+                        text = "₹${product.price}",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold

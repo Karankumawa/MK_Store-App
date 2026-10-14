@@ -100,7 +100,7 @@ fun ProductDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                             Text(
-                                text = "$${String.format("%.2f", product.price * quantity)}",
+                                text = "₹${String.format("%.2f", product.price * quantity)}",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary

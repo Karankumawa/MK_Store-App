@@ -33,7 +33,7 @@ fun CartScreen(
     onNavigate: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val freeShippingTarget = 100.0
+    val freeShippingTarget = 499.0
     val amountNeeded = (freeShippingTarget - state.totalPrice).coerceAtLeast(0.0)
 
     Scaffold(
@@ -65,7 +65,7 @@ fun CartScreen(
                             ) {
                                 Text(text = "Order Total:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
                                 Text(
-                                    text = "$${String.format("%.2f", state.totalPrice)}",
+                                    text = "₹${String.format("%.2f", state.totalPrice)}",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -123,7 +123,7 @@ fun CartScreen(
                                 Icon(Icons.Default.LocalShipping, contentDescription = "Shipping", tint = MaterialTheme.colorScheme.onPrimaryContainer)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = if (amountNeeded == 0.0) "🎉 You unlocked FREE Express Shipping!" else "Add $${String.format("%.2f", amountNeeded)} more for FREE Express Shipping!",
+                                    text = if (amountNeeded == 0.0) "🎉 You unlocked FREE Express Shipping!" else "Add ₹${String.format("%.2f", amountNeeded)} more for FREE Express Shipping!",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -157,17 +157,17 @@ fun CartScreen(
                             Text(text = "Order Summary", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Items Subtotal:", style = MaterialTheme.typography.bodySmall)
-                                Text(text = "$${String.format("%.2f", state.totalPrice)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                                Text(text = "₹${String.format("%.2f", state.totalPrice)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Express Delivery:", style = MaterialTheme.typography.bodySmall)
-                                Text(text = if (amountNeeded == 0.0) "FREE" else "$5.99", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+                                Text(text = if (amountNeeded == 0.0) "FREE" else "₹49.00", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
                             }
                             HorizontalDivider()
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Est. Total:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text(
-                                    text = "$${String.format("%.2f", state.totalPrice + if (amountNeeded == 0.0) 0.0 else 5.99)}",
+                                    text = "₹${String.format("%.2f", state.totalPrice + if (amountNeeded == 0.0) 0.0 else 49.00)}",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -218,7 +218,7 @@ fun CartItemRow(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "$${String.format("%.2f", item.price * item.quantity)}",
+                    text = "₹${String.format("%.2f", item.price * item.quantity)}",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary

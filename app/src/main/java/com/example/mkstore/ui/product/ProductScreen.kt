@@ -50,7 +50,7 @@ fun ProductScreen(
                     OutlinedTextField(
                         value = priceInput,
                         onValueChange = { priceInput = it },
-                        label = { Text("Price ($)") },
+                        label = { Text("Price (₹)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
@@ -206,7 +206,7 @@ fun ProductCardItem(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "$${String.format("%.2f", product.price)}",
+                    text = "₹${String.format("%.2f", product.price)}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
