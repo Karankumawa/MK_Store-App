@@ -15,7 +15,15 @@ class SupabaseRepository @Inject constructor() {
 
     // 1. User Profiles Table
     suspend fun saveOrUpdateUserProfile(profile: SupabaseUserProfile) = withContext(Dispatchers.IO) {
-        client.from("user_profiles").upsert(profile)
+        try {
+            client.from("user_profiles").upsert(profile)
+        } catch (e: Exception) {
+            try {
+                client.from("user_profiles").insert(profile)
+            } catch (e2: Exception) {
+                android.util.Log.e("SupabaseRLS", "Failed to save profile under RLS: ${e2.localizedMessage}")
+            }
+        }
     }
 
     suspend fun getUserProfile(uid: String): SupabaseUserProfile? = withContext(Dispatchers.IO) {
