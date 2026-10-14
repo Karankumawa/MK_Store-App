@@ -81,7 +81,12 @@ class SupabaseRepository @Inject constructor() {
 
     // 3. Orders Table
     suspend fun createOrder(order: SupabaseOrder) = withContext(Dispatchers.IO) {
-        client.from("orders").insert(order)
+        try {
+            client.from("orders").insert(order)
+            android.util.Log.d("OrderPlacement", "Successfully created order ${order.orderId} in Supabase")
+        } catch (e: Exception) {
+            android.util.Log.e("OrderPlacement", "Error inserting order in Supabase", e)
+        }
     }
 
     suspend fun getUserOrders(userId: String = "guest_user"): List<SupabaseOrder> = withContext(Dispatchers.IO) {
@@ -96,9 +101,20 @@ class SupabaseRepository @Inject constructor() {
         }
     }
 
-    // 4. Shipping Addresses Table
+    // 4. Shipping Addresses Table (Deduplicated)
     suspend fun addShippingAddress(address: SupabaseShippingAddress) = withContext(Dispatchers.IO) {
-        client.from("shipping_addresses").insert(address)
+        try {
+            val existing = getShippingAddresses(address.userId)
+            val match = existing.find {
+                it.streetAddress.equals(address.streetAddress, ignoreCase = true) &&
+                it.city.equals(address.city, ignoreCase = true)
+            }
+            if (match == null) {
+                client.from("shipping_addresses").insert(address)
+            }
+        } catch (e: Exception) {
+            try { client.from("shipping_addresses").insert(address) } catch (e2: Exception) { }
+        }
     }
 
     suspend fun getShippingAddresses(userId: String = "guest_user"): List<SupabaseShippingAddress> = withContext(Dispatchers.IO) {
@@ -113,9 +129,20 @@ class SupabaseRepository @Inject constructor() {
         }
     }
 
-    // 5. Payment Methods Table
+    // 5. Payment Methods Table (Deduplicated)
     suspend fun addPaymentMethod(paymentMethod: SupabasePaymentMethod) = withContext(Dispatchers.IO) {
-        client.from("payment_methods").insert(paymentMethod)
+        try {
+            val existing = getPaymentMethods(paymentMethod.userId)
+            val match = existing.find {
+                it.details.equals(paymentMethod.details, ignoreCase = true) ||
+                (it.provider != null && it.provider.equals(paymentMethod.provider, ignoreCase = true))
+            }
+            if (match == null) {
+                client.from("payment_methods").insert(paymentMethod)
+            }
+        } catch (e: Exception) {
+            try { client.from("payment_methods").insert(paymentMethod) } catch (e2: Exception) { }
+        }
     }
 
     suspend fun getPaymentMethods(userId: String = "guest_user"): List<SupabasePaymentMethod> = withContext(Dispatchers.IO) {

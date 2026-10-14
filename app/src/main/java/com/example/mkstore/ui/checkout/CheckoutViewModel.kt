@@ -44,8 +44,7 @@ class CheckoutViewModel @Inject constructor(
 
     private fun loadSavedUserCheckoutData() {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().trim().lowercase()
-            if (userEmail.isBlank()) return@launch
+            val userEmail = sessionManager.getUserEmail().trim().lowercase().ifBlank { "guest_user" }
 
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
@@ -63,7 +62,7 @@ class CheckoutViewModel @Inject constructor(
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    savedFullName = userName.ifBlank { "User Name" },
+                    savedFullName = userName.ifBlank { "Guest Shopper" },
                     savedPhone = defaultAddr?.phoneNumber ?: "+91 9876543210",
                     savedStreet = defaultAddr?.streetAddress ?: "123 Green Park Street, Apt 4B",
                     savedCity = defaultAddr?.city ?: "New Delhi",
@@ -87,8 +86,7 @@ class CheckoutViewModel @Inject constructor(
         paymentDetail: String
     ) {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().trim().lowercase()
-            if (userEmail.isBlank()) return@launch
+            val userEmail = sessionManager.getUserEmail().trim().lowercase().ifBlank { "guest_user" }
 
             try {
                 // 1. Sync updated Shipping Address to Supabase
