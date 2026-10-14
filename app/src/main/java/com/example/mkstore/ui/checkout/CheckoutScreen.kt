@@ -29,7 +29,7 @@ fun CheckoutScreen(
     onBackClick: () -> Unit,
     onOrderSuccess: () -> Unit
 ) {
-    val orderPlaced by viewModel.orderPlaced.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     var currentStep by remember { mutableIntStateOf(1) } // 1: Shipping, 2: Payment, 3: Review
 
     // Form states
@@ -44,7 +44,17 @@ fun CheckoutScreen(
 
     val orderId = remember { "#MKS-" + (10000..99999).random() }
 
-    if (orderPlaced) {
+    LaunchedEffect(uiState) {
+        if (uiState.savedFullName.isNotBlank()) fullName = uiState.savedFullName
+        if (uiState.savedPhone.isNotBlank()) phone = uiState.savedPhone
+        if (uiState.savedStreet.isNotBlank()) streetAddress = uiState.savedStreet
+        if (uiState.savedCity.isNotBlank()) city = uiState.savedCity
+        if (uiState.savedPostalCode.isNotBlank()) postalCode = uiState.savedPostalCode
+        if (uiState.savedPaymentOption.isNotBlank()) paymentOption = uiState.savedPaymentOption
+        if (uiState.savedPaymentDetail.isNotBlank()) paymentDetail = uiState.savedPaymentDetail
+    }
+
+    if (uiState.orderPlaced) {
         AlertDialog(
             onDismissRequest = { },
             icon = {
@@ -190,23 +200,23 @@ fun CheckoutScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             FilterChip(
-                                selected = paymentOption == "UPI / Google Pay",
+                                selected = paymentOption.contains("UPI") || paymentOption.contains("Google"),
                                 onClick = {
                                     paymentOption = "UPI / Google Pay"
-                                    paymentDetail = "karan@okicici"
+                                    if (!paymentDetail.contains("@")) paymentDetail = "karan@okicici"
                                 },
                                 label = { Text("UPI / GPay") }
                             )
                             FilterChip(
-                                selected = paymentOption == "Credit/Debit Card",
+                                selected = paymentOption.contains("Card") || paymentOption.contains("Visa") || paymentOption.contains("Mastercard"),
                                 onClick = {
                                     paymentOption = "Credit/Debit Card"
-                                    paymentDetail = "4242 •••• •••• 4242"
+                                    if (paymentDetail.contains("@")) paymentDetail = "4242 •••• •••• 4242"
                                 },
                                 label = { Text("Card") }
                             )
                             FilterChip(
-                                selected = paymentOption == "Cash on Delivery",
+                                selected = paymentOption.contains("Cash") || paymentOption.contains("COD"),
                                 onClick = {
                                     paymentOption = "Cash on Delivery"
                                     paymentDetail = "Pay on delivery"
@@ -218,7 +228,7 @@ fun CheckoutScreen(
                         OutlinedTextField(
                             value = paymentDetail,
                             onValueChange = { paymentDetail = it },
-                            label = { Text(if (paymentOption.contains("UPI")) "UPI ID" else "Card Details") },
+                            label = { Text(if (paymentOption.contains("UPI")) "UPI ID" else "Card / Payment Detail") },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -291,7 +301,15 @@ fun CheckoutScreen(
                         if (currentStep < 3) {
                             currentStep++
                         } else {
-                            viewModel.placeOrder()
+                            viewModel.placeOrder(
+                                fullName = fullName,
+                                phone = phone,
+                                streetAddress = streetAddress,
+                                city = city,
+                                postalCode = postalCode,
+                                paymentOption = paymentOption,
+                                paymentDetail = paymentDetail
+                            )
                         }
                     },
                     modifier = Modifier.weight(1f)
