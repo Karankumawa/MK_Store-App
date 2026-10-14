@@ -57,8 +57,8 @@ fun HomeScreen(
         if (state.banners.isNotEmpty()) state.banners
         else listOf(
             BannerItem(1, "Mega Indian Festive Sale ⚡", "Get up to 60% off on top electronics & fashion"),
-            BannerItem(2, "New Arrival Collection 🛍️", "Exclusive premium quality products for you"),
-            BannerItem(3, "Free Express Delivery 🚚", "Free shipping on all orders above ₹499")
+            BannerItem(2, "New Arrival Collection ️", "Exclusive premium quality products for you"),
+            BannerItem(3, "Free Express Delivery ", "Free shipping on all orders above ₹499")
         )
     }
     val bannerPagerState = rememberPagerState(pageCount = { displayBanners.size })
@@ -94,7 +94,7 @@ fun HomeScreen(
                 ) {
                     Column {
                         Text(
-                            text = "MK STORE 🛍️",
+                            text = "MK STORE",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary,

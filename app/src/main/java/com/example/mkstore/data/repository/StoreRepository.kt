@@ -102,6 +102,31 @@ class StoreRepository @Inject constructor(
         return all.filter { ids.contains(it.id) }
     }
 
+    suspend fun resetUserSessionData() {
+        cartDao.clearCart()
+        _favoriteIds.value = emptySet()
+    }
+
+    suspend fun syncUserCartFromSupabase(userId: String) {
+        cartDao.clearCart()
+        if (userId.isNotBlank() && userId != "guest_user") {
+            try {
+                val remoteCart = supabaseRepository.getCartItems(userId)
+                for (item in remoteCart) {
+                    cartDao.insertOrUpdateCartItem(
+                        CartEntity(
+                            id = item.productId.toInt(),
+                            title = item.title,
+                            price = item.price,
+                            image = item.image ?: "",
+                            quantity = item.quantity
+                        )
+                    )
+                }
+            } catch (e: Exception) { }
+        }
+    }
+
     suspend fun addToCart(item: CartEntity, userId: String = "guest_user") {
         cartDao.insertOrUpdateCartItem(item)
         try {

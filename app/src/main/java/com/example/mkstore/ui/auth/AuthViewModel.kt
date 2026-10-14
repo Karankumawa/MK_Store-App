@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mkstore.data.local.SessionManager
 import com.example.mkstore.data.model.UserProfile
+import com.example.mkstore.data.repository.StoreRepository
 import com.example.mkstore.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     val sessionManager: SessionManager,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val storeRepository: StoreRepository
 ) : ViewModel() {
 
     private val auth: FirebaseAuth?
@@ -42,14 +44,19 @@ class AuthViewModel @Inject constructor(
             sessionManager.saveUserData(name, email, photoUrl)
             saveUserToSupabase(email, name)
             _authState.value = AuthState.Success(UserProfileData(name, email, photoUrl))
+            viewModelScope.launch { storeRepository.syncUserCartFromSupabase(email) }
         } else if (sessionManager.isLoggedIn() && sessionManager.getUserEmail().isNotBlank()) {
             val name = sessionManager.getUserName()
             val email = sessionManager.getUserEmail()
             val photoUrl = sessionManager.getUserPhotoUrl()
             _authState.value = AuthState.Success(UserProfileData(name, email, photoUrl))
+            viewModelScope.launch { storeRepository.syncUserCartFromSupabase(email) }
         } else {
-            sessionManager.clearSession()
-            _authState.value = AuthState.Idle
+            viewModelScope.launch {
+                sessionManager.clearSession()
+                storeRepository.resetUserSessionData()
+                _authState.value = AuthState.Idle
+            }
         }
     }
 
@@ -82,6 +89,7 @@ class AuthViewModel @Inject constructor(
                 val adminName = "Admin User"
                 sessionManager.saveUserData(adminName, normalizedEmail)
                 saveUserToSupabase(normalizedEmail, adminName)
+                storeRepository.syncUserCartFromSupabase(normalizedEmail)
                 _authState.value = AuthState.Success(UserProfileData(adminName, normalizedEmail))
                 return@launch
             }
@@ -101,6 +109,7 @@ class AuthViewModel @Inject constructor(
             val name = existingUser.displayName?.ifBlank { null }
                 ?: normalizedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, normalizedEmail)
+            storeRepository.syncUserCartFromSupabase(normalizedEmail)
             _authState.value = AuthState.Success(UserProfileData(name, normalizedEmail))
         }
     }
@@ -129,6 +138,7 @@ class AuthViewModel @Inject constructor(
             val name = normalizedEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, normalizedEmail)
             saveUserToSupabase(normalizedEmail, name)
+            storeRepository.syncUserCartFromSupabase(normalizedEmail)
             _authState.value = AuthState.Success(UserProfileData(name, normalizedEmail))
         }
     }
@@ -139,6 +149,7 @@ class AuthViewModel @Inject constructor(
             val name = if (googleName.isNotBlank()) googleName else googleEmail.substringBefore("@").replaceFirstChar { it.uppercase() }
             sessionManager.saveUserData(name, googleEmail, photoUrl)
             saveUserToSupabase(googleEmail, name)
+            storeRepository.syncUserCartFromSupabase(googleEmail)
             _authState.value = AuthState.Success(UserProfileData(name, googleEmail, photoUrl))
         }
     }
@@ -147,8 +158,11 @@ class AuthViewModel @Inject constructor(
         try {
             auth?.signOut()
         } catch (e: Exception) { }
-        sessionManager.clearSession()
-        _authState.value = AuthState.Idle
+        viewModelScope.launch {
+            sessionManager.clearSession()
+            storeRepository.resetUserSessionData()
+            _authState.value = AuthState.Idle
+        }
     }
 
     fun resetState() {

@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyOrdersViewModel @Inject constructor(
-    private val supabaseRepository: SupabaseRepository,
+    private val repository: SupabaseRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -22,18 +22,18 @@ class MyOrdersViewModel @Inject constructor(
     val orders: StateFlow<List<SupabaseOrder>> = _orders.asStateFlow()
 
     init {
-        loadOrders()
+        loadUserOrders()
     }
 
-    fun loadOrders() {
+    fun loadUserOrders() {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().trim()
-            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) {
+            val userEmail = sessionManager.getUserEmail().trim().lowercase()
+            if (userEmail.isBlank()) {
                 _orders.value = emptyList()
                 return@launch
             }
-            val list = supabaseRepository.getUserOrders(userEmail)
-            _orders.value = list
+            val loaded = repository.getUserOrders(userEmail)
+            _orders.value = loaded
         }
     }
 }

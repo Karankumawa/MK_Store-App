@@ -44,7 +44,20 @@ class CheckoutViewModel @Inject constructor(
 
     private fun loadSavedUserCheckoutData() {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().trim().lowercase().ifBlank { "guest_user" }
+            val userEmail = sessionManager.getUserEmail().trim().lowercase()
+            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    savedFullName = "",
+                    savedPhone = "",
+                    savedStreet = "",
+                    savedCity = "",
+                    savedPostalCode = "",
+                    savedPaymentOption = "UPI / Google Pay",
+                    savedPaymentDetail = ""
+                )
+                return@launch
+            }
 
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
@@ -62,13 +75,13 @@ class CheckoutViewModel @Inject constructor(
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    savedFullName = userName.ifBlank { "Guest Shopper" },
-                    savedPhone = defaultAddr?.phoneNumber ?: "+91 9876543210",
-                    savedStreet = defaultAddr?.streetAddress ?: "123 Green Park Street, Apt 4B",
-                    savedCity = defaultAddr?.city ?: "New Delhi",
-                    savedPostalCode = defaultAddr?.postalCode ?: "110001",
+                    savedFullName = userName.ifBlank { "User Name" },
+                    savedPhone = defaultAddr?.phoneNumber ?: "",
+                    savedStreet = defaultAddr?.streetAddress ?: "",
+                    savedCity = defaultAddr?.city ?: "",
+                    savedPostalCode = defaultAddr?.postalCode ?: "",
                     savedPaymentOption = defaultPay?.provider ?: defaultPay?.paymentType ?: "UPI / Google Pay",
-                    savedPaymentDetail = defaultPay?.details ?: "user@upi"
+                    savedPaymentDetail = defaultPay?.details ?: ""
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false)
@@ -86,7 +99,8 @@ class CheckoutViewModel @Inject constructor(
         paymentDetail: String
     ) {
         viewModelScope.launch {
-            val userEmail = sessionManager.getUserEmail().trim().lowercase().ifBlank { "guest_user" }
+            val userEmail = sessionManager.getUserEmail().trim().lowercase()
+            if (!sessionManager.isLoggedIn() || userEmail.isBlank()) return@launch
 
             try {
                 // 1. Sync updated Shipping Address to Supabase
