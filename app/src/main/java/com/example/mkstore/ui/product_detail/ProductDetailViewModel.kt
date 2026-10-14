@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mkstore.data.local.CartEntity
+import com.example.mkstore.data.local.SessionManager
 import com.example.mkstore.data.remote.dto.ProductDto
 import com.example.mkstore.data.repository.StoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,12 +18,14 @@ data class ProductDetailUiState(
     val isLoading: Boolean = false,
     val product: ProductDto? = null,
     val error: String? = null,
-    val isAddedToCart: Boolean = false
+    val isAddedToCart: Boolean = false,
+    val showAuthRequiredDialog: Boolean = false
 )
 
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
     private val repository: StoreRepository,
+    val sessionManager: SessionManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -49,6 +52,10 @@ class ProductDetailViewModel @Inject constructor(
     }
 
     fun addToCart() {
+        if (!sessionManager.isLoggedIn() || sessionManager.getUserEmail().isBlank()) {
+            _uiState.value = _uiState.value.copy(showAuthRequiredDialog = true)
+            return
+        }
         val product = uiState.value.product ?: return
         viewModelScope.launch {
             val cartEntity = CartEntity(
@@ -58,8 +65,12 @@ class ProductDetailViewModel @Inject constructor(
                 image = product.image,
                 quantity = 1
             )
-            repository.addToCart(cartEntity)
+            repository.addToCart(cartEntity, userId = sessionManager.getUserEmail())
             _uiState.value = _uiState.value.copy(isAddedToCart = true)
         }
+    }
+
+    fun dismissAuthDialog() {
+        _uiState.value = _uiState.value.copy(showAuthRequiredDialog = false)
     }
 }

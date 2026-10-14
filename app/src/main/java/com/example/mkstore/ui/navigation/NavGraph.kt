@@ -124,7 +124,8 @@ fun NavGraph(navController: NavHostController) {
             ProductDetailScreen(
                 viewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
-                onCartClick = { navController.navigate(Screen.Cart.route) }
+                onCartClick = { navController.navigate(Screen.Cart.route) },
+                onLoginClick = { navController.navigate(Screen.Login.route) }
             )
         }
         composable(Screen.Cart.route) {

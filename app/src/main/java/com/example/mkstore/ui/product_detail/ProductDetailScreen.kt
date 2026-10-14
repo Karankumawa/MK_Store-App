@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -23,13 +24,45 @@ import coil.compose.AsyncImage
 fun ProductDetailScreen(
     viewModel: ProductDetailViewModel,
     onBackClick: () -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    onLoginClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
 
     var selectedColor by remember { mutableStateOf("Space Gray") }
-    var selectedSize by remember { mutableStateOf("Standard") }
     var quantity by remember { mutableIntStateOf(1) }
+
+    if (state.showAuthRequiredDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissAuthDialog() },
+            icon = {
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = "Login Required",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = { Text("Account Required to Purchase 🛒", fontWeight = FontWeight.Bold) },
+            text = { Text("Please log in or create an account first to add items to your cart and complete purchases.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dismissAuthDialog()
+                        onLoginClick()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Sign In / Create Account")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissAuthDialog() }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
