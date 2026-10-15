@@ -235,32 +235,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Quick Admin Fill Helper Pill
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        email = "admin@mkstore.com"
-                        password = "admin@123"
-                    },
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(Icons.Default.FlashOn, contentDescription = "Admin", tint = MaterialTheme.colorScheme.primary)
-                    Column {
-                        Text(text = "Quick Admin Demo Credentials", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                        Text(text = "Tap to auto-fill: admin@mkstore.com / admin@123", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
             OutlinedButton(
                 onClick = { showGoogleDialog = true },
                 modifier = Modifier
