@@ -184,7 +184,10 @@ fun NavGraph(navController: NavHostController) {
             val viewModel: MyOrdersViewModel = hiltViewModel()
             MyOrdersScreen(
                 viewModel = viewModel,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onOrderClick = { orderId ->
+                    navController.navigate(Screen.OrderTracking.createRoute(orderId))
+                }
             )
         }
         composable(Screen.ShippingAddresses.route) {
@@ -198,6 +201,26 @@ fun NavGraph(navController: NavHostController) {
             val viewModel: PaymentMethodsViewModel = hiltViewModel()
             PaymentMethodsScreen(
                 viewModel = viewModel,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Coupons.route) {
+            com.example.mkstore.ui.coupons.CouponsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Support.route) {
+            com.example.mkstore.ui.support.SupportScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.OrderTracking.route,
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: "#MKS-12345"
+            com.example.mkstore.ui.profile.tracking.OrderTrackingScreen(
+                orderId = orderId,
                 onBackClick = { navController.popBackStack() }
             )
         }

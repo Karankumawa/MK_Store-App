@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.HomeWork
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -217,6 +219,23 @@ fun ProfileScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ProfileMenuTile(
+                        icon = Icons.Default.LocalOffer,
+                        title = "Coupons",
+                        subtitle = "Offers & deals",
+                        onClick = { onNavigate(Screen.Coupons.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    ProfileMenuTile(
+                        icon = Icons.Default.SupportAgent,
+                        title = "Help & Support",
+                        subtitle = "24/7 customer care",
+                        onClick = { onNavigate(Screen.Support.route) },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
 

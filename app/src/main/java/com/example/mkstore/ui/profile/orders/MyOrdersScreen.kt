@@ -1,5 +1,6 @@
 package com.example.mkstore.ui.profile.orders
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,14 +19,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MyOrdersScreen(
     viewModel: MyOrdersViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onOrderClick: (String) -> Unit
 ) {
     val orders by viewModel.orders.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Orders (Supabase Live)") },
+                title = { Text("My Orders (Supabase Live)", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -53,7 +55,9 @@ fun MyOrdersScreen(
             ) {
                 items(orders) { order ->
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOrderClick(order.orderId) },
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         Column(
